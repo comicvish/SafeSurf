@@ -5,6 +5,10 @@ import Home from './pages/Home'
 import CourseList from './pages/CourseList'
 import CourseDetail from './pages/CourseDetail'
 import LessonDetail from './pages/LessonDetail'
+import Login from './pages/Login'
+import Signup from './pages/Signup'
+import Dashboard from './pages/Dashboard'
+import ProtectedRoute from './components/ProtectedRoute'
 import ComingSoon from './pages/ComingSoon'
 
 export default function App() {
@@ -16,8 +20,16 @@ export default function App() {
         <Route path="/courses" element={<CourseList />} />
         <Route path="/courses/:courseId" element={<CourseDetail />} />
         <Route path="/lessons/:lessonId" element={<LessonDetail />} />
-        <Route path="/dashboard" element={<ComingSoon title="My progress" />} />
-        <Route path="/login" element={<ComingSoon title="Sign in" />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
         <Route path="*" element={<ComingSoon title="Not found" />} />
       </Routes>
       <Footer />

@@ -273,6 +273,10 @@ footer small {
   margin-bottom: 14px;
 }
 
+.unit-block h2 a {
+  text-decoration: none;
+}
+
 .lesson-list {
   list-style: none;
   margin: 0;
@@ -340,4 +344,65 @@ footer small {
 
 .lesson-nav a {
   text-decoration: none;
+}
+
+.button-complete {
+  background: var(--coral);
+  color: #09210c;
+}
+
+.lesson-signin-prompt {
+  font-size: 15px;
+  color: #5d7470;
+}
+
+.auth-page {
+  max-width: 380px;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 24px 0;
+}
+
+.auth-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.auth-form input {
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  font-size: 15px;
+}
+
+.auth-error {
+  color: #b3261e;
+  font-size: 14px;
+  margin: 0;
+}
+
+.text-link {
+  border: 0;
+  background: none;
+  padding: 0;
+  text-decoration: underline;
+  font-weight: 600;
+  color: inherit;
+}
+
+.dashboard-user {
+  color: #5d7470;
+  margin: -10px 0 6px;
+}
+
+.dashboard-summary {
+  font-weight: 700;
+  margin-bottom: 30px;
 }

@@ -58,3 +58,8 @@ export interface LessonDetail {
   prevLessonId: string | null
   nextLessonId: string | null
 }
+
+export interface ProgressDoc {
+  completed: true
+  completedAt: string
+}

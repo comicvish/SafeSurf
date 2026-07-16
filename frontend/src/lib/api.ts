@@ -1,7 +1,13 @@
 import type { CourseDetail, CourseSummary, LessonDetail } from './types'
+import { auth } from './firebaseClient'
 
-async function getJson<T>(url: string): Promise<T> {
-  const res = await fetch(url)
+async function authHeaders(): Promise<HeadersInit> {
+  const token = await auth.currentUser?.getIdToken()
+  return token ? { Authorization: `Bearer ${token}` } : {}
+}
+
+async function getJson<T>(url: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(url, init)
   if (!res.ok) {
     throw new Error(`Request to ${url} failed with ${res.status}`)
   }
@@ -18,4 +24,16 @@ export function getCourse(courseId: string): Promise<{ course: CourseDetail }> {
 
 export function getLesson(lessonId: string): Promise<{ lesson: LessonDetail }> {
   return getJson(`/api/lessons/${lessonId}`)
+}
+
+export async function getProgress(): Promise<{ completedLessonIds: string[] }> {
+  return getJson('/api/progress', { headers: await authHeaders() })
+}
+
+export async function setLessonComplete(lessonId: string, completed: boolean): Promise<void> {
+  await getJson(`/api/progress/${lessonId}`, {
+    method: 'PUT',
+    headers: { ...(await authHeaders()), 'Content-Type': 'application/json' },
+    body: JSON.stringify({ completed }),
+  })
 }
