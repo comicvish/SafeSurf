@@ -37,7 +37,7 @@ const HIGHLIGHTS = [
 ]
 
 const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-const SESSION_DAY_INDEX = 1 // Tuesday — arbitrary; the point is "same day, once a week"
+const SESSION_DAY_INDEX = 1 // arbitrary example day — the real day/time is scheduled by email, not fixed
 
 export default function InPersonCourses() {
   useEffect(() => {
@@ -55,27 +55,35 @@ export default function InPersonCourses() {
         </p>
         <h1>The full four-week schedule.</h1>
         <p className="schedule-hero-text">
-          Our team leads one live session a week, same day and time, at your community — no technical experience
-          needed, and nothing for your staff to set up.
+          Our team leads one live session a week, for four weeks — you tell us the day and time that works for your
+          community, and we build the course around it. No technical experience needed, and nothing for your staff
+          to set up.
         </p>
-        <div className="schedule-calendar">
-          {DAY_LABELS.map((day) => (
-            <div className="schedule-day-label" key={day}>
-              {day}
-            </div>
-          ))}
-          {CURRICULUM.flatMap((item) =>
-            Array.from({ length: 7 }, (_, day) =>
-              day === SESSION_DAY_INDEX ? (
-                <div className="schedule-cell session" key={`${item.week}-${day}`}>
-                  <span className="schedule-cell-week">{item.week}</span>
-                  <span className="schedule-cell-topic">{item.title}</span>
-                </div>
-              ) : (
-                <div className="schedule-cell" key={`${item.week}-${day}`} />
+        <div className="schedule-calendar-wrap">
+          <span className="schedule-example-badge">Example rhythm — day &amp; time are up to you</span>
+          <div className="schedule-calendar">
+            {DAY_LABELS.map((day) => (
+              <div className="schedule-day-label" key={day}>
+                {day}
+              </div>
+            ))}
+            {CURRICULUM.flatMap((item) =>
+              Array.from({ length: 7 }, (_, day) =>
+                day === SESSION_DAY_INDEX ? (
+                  <div className="schedule-cell session" key={`${item.week}-${day}`}>
+                    <span className="schedule-cell-week">{item.week}</span>
+                    <span className="schedule-cell-topic">{item.title}</span>
+                  </div>
+                ) : (
+                  <div className="schedule-cell" key={`${item.week}-${day}`} />
+                ),
               ),
-            ),
-          )}
+            )}
+          </div>
+          <p className="schedule-calendar-note">
+            This is just an example — email us and we'll schedule the exact day and time around your community's
+            calendar.
+          </p>
         </div>
       </section>
 

@@ -886,16 +886,38 @@ footer small {
   margin-bottom: 28px;
 }
 
+.schedule-calendar-wrap {
+  margin-top: 36px;
+}
+
+.schedule-example-badge {
+  display: inline-block;
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--navy);
+  background: var(--sky);
+  padding: 6px 14px;
+  border-radius: 999px;
+  margin-bottom: 14px;
+}
+
 .schedule-calendar {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 10px;
-  margin-top: 36px;
   padding: 28px;
   background: #fff;
   border: 1px solid var(--line);
   border-radius: 14px;
   box-shadow: 0 20px 40px rgba(15, 44, 82, 0.08);
+}
+
+.schedule-calendar-note {
+  margin: 16px 0 0;
+  font-size: 14px;
+  color: #52697f;
 }
 
 .schedule-day-label {
