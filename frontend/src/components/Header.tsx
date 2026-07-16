@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../lib/authContext'
 import { useIsAdmin } from '../lib/adminContext'
@@ -5,27 +6,53 @@ import { useIsAdmin } from '../lib/adminContext'
 export default function Header() {
   const { user, signOutUser } = useAuth()
   const { isAdmin } = useIsAdmin()
+  const [menuOpen, setMenuOpen] = useState(false)
 
   return (
     <header className="site-header">
-      <Link className="brand" to="/" aria-label="SafeSurf home">
-        <img src="/assets/safesurf-logo.png" alt="SafeSurf logo" />
-        <span>SafeSurf</span>
+      <Link className="brand" to="/" aria-label="VeraBlock home" onClick={() => setMenuOpen(false)}>
+        <img src="/assets/favicon.png" alt="VeraBlock logo" />
+        <span>VeraBlock</span>
       </Link>
-      <nav aria-label="Main navigation">
-        <Link to="/courses">Courses</Link>
-        <Link to="/dashboard">My progress</Link>
-        {isAdmin && <Link to="/admin">Admin</Link>}
-      </nav>
-      {user ? (
-        <button className="header-cta" onClick={() => void signOutUser()}>
-          Sign out
-        </button>
-      ) : (
-        <Link className="header-cta" to="/login">
-          Sign in
+      <button
+        className="menu-toggle"
+        aria-label="Toggle menu"
+        aria-expanded={menuOpen}
+        aria-controls="main-navigation"
+        onClick={() => setMenuOpen((open) => !open)}
+      >
+        <span />
+        <span />
+        <span />
+      </button>
+      <nav id="main-navigation" aria-label="Main navigation" className={menuOpen ? 'open' : undefined}>
+        <Link to="/courses" onClick={() => setMenuOpen(false)}>
+          Courses
         </Link>
-      )}
+        <Link to="/dashboard" onClick={() => setMenuOpen(false)}>
+          My progress
+        </Link>
+        {isAdmin && (
+          <Link to="/admin" onClick={() => setMenuOpen(false)}>
+            Admin
+          </Link>
+        )}
+        {user ? (
+          <button
+            className="header-cta"
+            onClick={() => {
+              setMenuOpen(false)
+              void signOutUser()
+            }}
+          >
+            Sign out
+          </button>
+        ) : (
+          <Link className="header-cta" to="/login" onClick={() => setMenuOpen(false)}>
+            Sign in
+          </Link>
+        )}
+      </nav>
     </header>
   )
 }

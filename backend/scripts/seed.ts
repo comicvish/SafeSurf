@@ -2,11 +2,11 @@ import { db } from '../src/services/firestore.js'
 import type { CourseDoc, LessonDoc, UnitDoc, VideoDoc } from '../src/types.js'
 
 // Placeholder video (Blender Foundation's Big Buck Bunny trailer — public,
-// always embeddable) until real SafeSurf lessons are synced in Phase 4.
+// always embeddable) until real VeraBlock lessons are synced in Phase 4.
 const PLACEHOLDER_VIDEO: VideoDoc = {
   youtubeVideoId: 'aqz-KE-bpKQ',
   title: 'Placeholder lesson video',
-  description: 'Sample video standing in for a real SafeSurf lesson recording.',
+  description: 'Sample video standing in for a real VeraBlock lesson recording.',
   thumbnailUrl: 'https://i.ytimg.com/vi/aqz-KE-bpKQ/hqdefault.jpg',
   embeddable: true,
   privacyStatus: 'public',

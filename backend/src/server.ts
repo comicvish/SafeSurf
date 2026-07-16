@@ -34,5 +34,5 @@ app.use((err: unknown, _req: express.Request, res: express.Response, _next: expr
 })
 
 app.listen(port, () => {
-  console.log(`SafeSurf backend listening on port ${port}`)
+  console.log(`VeraBlock backend listening on port ${port}`)
 })

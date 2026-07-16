@@ -11,7 +11,7 @@ import Dashboard from './pages/Dashboard'
 import ProtectedRoute from './components/ProtectedRoute'
 import AdminRoute from './components/AdminRoute'
 import Admin from './pages/Admin'
-import ComingSoon from './pages/ComingSoon'
+import NotFound from './pages/NotFound'
 
 export default function App() {
   return (
@@ -40,7 +40,7 @@ export default function App() {
             </AdminRoute>
           }
         />
-        <Route path="*" element={<ComingSoon title="Not found" />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
       <Footer />
     </>

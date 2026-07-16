@@ -56,6 +56,7 @@ a {
   justify-content: space-between;
   border-bottom: 1px solid var(--line);
   background: var(--paper);
+  position: relative;
 }
 
 .brand {
@@ -79,15 +80,32 @@ a {
 
 .site-header nav {
   display: flex;
+  align-items: center;
   gap: 32px;
   margin-left: auto;
-  margin-right: 36px;
 }
 
 .site-header nav a {
   text-decoration: none;
   font-weight: 600;
   font-size: 14px;
+}
+
+.menu-toggle {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  border: 0;
+  background: transparent;
+  padding: 8px;
+}
+
+.menu-toggle span {
+  width: 22px;
+  height: 2px;
+  background: var(--ink);
+  display: block;
 }
 
 .header-cta,
@@ -105,7 +123,7 @@ a {
 
 .header-cta {
   color: #fff;
-  background: var(--forest);
+  background: var(--navy);
   padding: 11px 16px;
   font-size: 14px;
 }
@@ -120,8 +138,8 @@ a {
 }
 
 .button-primary {
-  background: var(--coral);
-  color: #09210c;
+  background: var(--gold);
+  color: var(--navy);
 }
 
 .hero-shell {
@@ -146,14 +164,14 @@ a {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  color: #4a6663;
+  color: #3d5a78;
   margin: 0 0 20px;
 }
 
 .eyebrow span {
   width: 18px;
   height: 2px;
-  background: var(--coral);
+  background: var(--gold);
   display: block;
 }
 
@@ -167,7 +185,7 @@ a {
   line-height: 1.55;
   max-width: 480px;
   margin: 25px auto 30px;
-  color: #3e5c58;
+  color: #34506b;
 }
 
 .coming-soon {
@@ -177,14 +195,42 @@ a {
   justify-content: center;
   min-height: 50vh;
   text-align: center;
-  gap: 10px;
+  gap: 14px;
   padding: 60px 28px;
+}
+
+.value-props {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  padding-top: 0;
+  padding-bottom: 60px;
+}
+
+.value-prop h3 {
+  font-size: 20px;
+  margin-bottom: 8px;
+}
+
+.value-prop p {
+  font-size: 15px;
+  color: #52697f;
+  margin: 0;
+}
+
+.featured-courses {
+  padding-top: 0;
+}
+
+.featured-courses > h2 {
+  font-size: clamp(28px, 3vw, 38px);
+  margin-bottom: 24px;
 }
 
 footer {
   padding: 40px max(5vw, 28px) 28px;
-  background: var(--forest);
-  color: #e7f0ed;
+  background: var(--navy);
+  color: #e8eef5;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -198,12 +244,12 @@ footer .brand {
 
 footer p {
   margin: 2px 0;
-  color: #bed0cc;
+  color: #bcccdc;
   font-size: 14px;
 }
 
 footer small {
-  color: #a9bfbb;
+  color: #a7b9c9;
   font-size: 11px;
 }
 
@@ -219,7 +265,7 @@ footer small {
   align-items: center;
   justify-content: center;
   min-height: 50vh;
-  color: #5d7470;
+  color: #52697f;
 }
 
 .course-list h1,
@@ -241,7 +287,7 @@ footer small {
   gap: 10px;
   padding: 24px;
   border-radius: 8px;
-  background: #c9efbd;
+  background: #dbe8f6;
   text-decoration: none;
   color: var(--ink);
 }
@@ -254,12 +300,12 @@ footer small {
   margin-top: auto;
   font-family: 'DM Mono', monospace;
   font-size: 12px;
-  color: #3e5c58;
+  color: #34506b;
 }
 
 .course-description {
   font-size: 17px;
-  color: #5d7470;
+  color: #52697f;
   max-width: 620px;
   margin: -10px 0 30px;
 }
@@ -299,7 +345,7 @@ footer small {
 
 .lesson-list a span {
   font-size: 14px;
-  color: #5d7470;
+  color: #52697f;
 }
 
 .lesson-detail .eyebrow {
@@ -331,7 +377,7 @@ footer small {
 
 .lesson-summary {
   font-size: 17px;
-  color: #3e5c58;
+  color: #34506b;
   max-width: 620px;
 }
 
@@ -347,13 +393,13 @@ footer small {
 }
 
 .button-complete {
-  background: var(--coral);
-  color: #09210c;
+  background: var(--gold);
+  color: var(--navy);
 }
 
 .lesson-signin-prompt {
   font-size: 15px;
-  color: #5d7470;
+  color: #52697f;
 }
 
 .auth-page {
@@ -398,7 +444,7 @@ footer small {
 }
 
 .dashboard-user {
-  color: #5d7470;
+  color: #52697f;
   margin: -10px 0 6px;
 }
 
@@ -410,7 +456,7 @@ footer small {
 .admin-sync-result {
   margin: 14px 0 0;
   font-size: 14px;
-  color: #3e5c58;
+  color: #34506b;
 }
 
 .admin-section-title {
@@ -488,4 +534,67 @@ footer small {
 .admin-assign-actions {
   display: flex;
   gap: 10px;
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--navy);
+  outline-offset: 2px;
+}
+
+@media (max-width: 720px) {
+  .menu-toggle {
+    display: flex;
+  }
+
+  .site-header nav {
+    display: none;
+    position: absolute;
+    top: 79px;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    background: var(--paper);
+    border-bottom: 1px solid var(--line);
+    padding: 16px max(5vw, 28px) 24px;
+    z-index: 10;
+  }
+
+  .site-header nav.open {
+    display: flex;
+  }
+
+  .site-header nav a,
+  .site-header nav .header-cta {
+    width: 100%;
+    padding: 10px 0;
+  }
+
+  .value-props {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-video-card {
+    flex-direction: column;
+  }
+
+  .admin-video-card img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+  }
+
+  .lesson-nav {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  footer {
+    padding: 32px 20px 24px;
+  }
 }

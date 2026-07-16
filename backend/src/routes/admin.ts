@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import { verifyFirebaseToken } from '../middleware/verifyFirebaseToken.js'
 import { requireAdmin, isAdminEmail } from '../middleware/requireAdmin.js'
+import { verifySchedulerOrAdmin } from '../middleware/verifySchedulerOrAdmin.js'
 import { asyncHandler } from '../middleware/asyncHandler.js'
 import { syncYoutubeVideos } from '../services/youtube.js'
 import { listUnassignedVideos, markVideoAssigned } from '../services/videos.js'
@@ -18,8 +19,7 @@ adminRouter.get(
 
 adminRouter.post(
   '/admin/sync-youtube',
-  verifyFirebaseToken,
-  requireAdmin,
+  verifySchedulerOrAdmin,
   asyncHandler(async (_req, res) => {
     const result = await syncYoutubeVideos()
     res.json({ result })

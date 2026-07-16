@@ -4,6 +4,14 @@ steps:
       - build
       - -t
       - $_IMAGE
+      - --build-arg
+      - VITE_FIREBASE_API_KEY=$_VITE_FIREBASE_API_KEY
+      - --build-arg
+      - VITE_FIREBASE_AUTH_DOMAIN=$_VITE_FIREBASE_AUTH_DOMAIN
+      - --build-arg
+      - VITE_FIREBASE_PROJECT_ID=$_VITE_FIREBASE_PROJECT_ID
+      - --build-arg
+      - VITE_FIREBASE_APP_ID=$_VITE_FIREBASE_APP_ID
       - .
 
   - name: gcr.io/cloud-builders/docker
@@ -21,6 +29,9 @@ steps:
       - --region=$_REGION
       - --platform=managed
       - --allow-unauthenticated
+      - --service-account=safesurf-run-sa@$PROJECT_ID.iam.gserviceaccount.com
+      - --set-env-vars=FIREBASE_PROJECT_ID=$PROJECT_ID,ADMIN_EMAILS=$_ADMIN_EMAILS,YOUTUBE_CHANNEL_ID=$_YOUTUBE_CHANNEL_ID,SCHEDULER_SERVICE_ACCOUNT_EMAIL=safesurf-scheduler-sa@$PROJECT_ID.iam.gserviceaccount.com,SCHEDULER_OIDC_AUDIENCE=$_SCHEDULER_OIDC_AUDIENCE
+      - --set-secrets=YOUTUBE_API_KEY=youtube-api-key:latest
 
 images:
   - $_IMAGE
@@ -28,7 +39,17 @@ images:
 substitutions:
   _SERVICE: safesurf
   _REGION: us-central1
-  _IMAGE: gcr.io/$PROJECT_ID/safesurf:$SHORT_SHA
+  _IMAGE: us-central1-docker.pkg.dev/safesurf-learn/safesurf/safesurf:latest
+  _ADMIN_EMAILS: verablockeducators@gmail.com
+  _YOUTUBE_CHANNEL_ID: UCleKAbI6ojw3A-dKSNChcqw
+  # Same audience the Cloud Scheduler job's OIDC token targets — must stay in
+  # sync with the actual service URL (see `gcloud scheduler jobs describe`).
+  _SCHEDULER_OIDC_AUDIENCE: https://safesurf-jbxibxbqsa-uc.a.run.app/api/admin/sync-youtube
+  # Firebase web config is public (not secret) — see frontend/.env.example.
+  _VITE_FIREBASE_API_KEY: AIzaSyAFjBVvPpLDCfotVNoR0k3hZ2eHuPmovCM
+  _VITE_FIREBASE_AUTH_DOMAIN: safesurf-learn.firebaseapp.com
+  _VITE_FIREBASE_PROJECT_ID: safesurf-learn
+  _VITE_FIREBASE_APP_ID: "1:230613980461:web:35b37a50763d2f000fefa4"
 
 options:
   logging: CLOUD_LOGGING_ONLY
