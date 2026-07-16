@@ -4,7 +4,7 @@ import Footer from './components/Footer'
 import Home from './pages/Home'
 import CourseList from './pages/CourseList'
 import CourseDetail from './pages/CourseDetail'
-import ForCommunities from './pages/ForCommunities'
+import InPersonCourses from './pages/InPersonCourses'
 import LessonDetail from './pages/LessonDetail'
 import Practice from './pages/Practice'
 import Login from './pages/Login'
@@ -23,7 +23,7 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/courses" element={<CourseList />} />
         <Route path="/courses/:courseId" element={<CourseDetail />} />
-        <Route path="/for-communities" element={<ForCommunities />} />
+        <Route path="/in-person-courses" element={<InPersonCourses />} />
         <Route path="/lessons/:lessonId" element={<LessonDetail />} />
         <Route
           path="/lessons/:lessonId/practice"

@@ -57,7 +57,7 @@ export default function Home() {
               spam calls, AI voices, and AI-generated images and video.
             </p>
           </div>
-          <Link className="button button-primary" to="/for-communities">
+          <Link className="button button-primary" to="/in-person-courses">
             Learn about the in-person course
           </Link>
         </div>

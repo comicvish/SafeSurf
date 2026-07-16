@@ -36,8 +36,8 @@ export default function Header() {
         <Link to="/courses" onClick={() => setMenuOpen(false)}>
           Courses
         </Link>
-        <Link to="/for-communities" onClick={() => setMenuOpen(false)}>
-          For Communities
+        <Link to="/in-person-courses" onClick={() => setMenuOpen(false)}>
+          In-Person Courses
         </Link>
         <Link to="/dashboard" onClick={() => setMenuOpen(false)}>
           My progress
