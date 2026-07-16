@@ -10,13 +10,18 @@ interface AdminContextValue {
 const AdminContext = createContext<AdminContextValue | null>(null)
 
 export function AdminProvider({ children }: { children: ReactNode }) {
-  const { user } = useAuth()
+  const { user, loading: authLoading } = useAuth()
   const [isAdmin, setIsAdmin] = useState(false)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    // Wait for auth to settle first — otherwise `user` is still its initial
+    // `null` before the real session loads, and this would decide "not an
+    // admin" before the real check ever runs.
+    if (authLoading) return
     if (!user) {
       setIsAdmin(false)
+      setLoading(false)
       return
     }
     setLoading(true)
@@ -24,7 +29,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       .then(setIsAdmin)
       .catch(() => setIsAdmin(false))
       .finally(() => setLoading(false))
-  }, [user])
+  }, [user, authLoading])
 
   return <AdminContext.Provider value={{ isAdmin, loading }}>{children}</AdminContext.Provider>
 }
