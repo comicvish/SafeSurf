@@ -31,3 +31,18 @@ export interface LessonDetail {
   prevLessonId: string | null
   nextLessonId: string | null
 }
+
+export interface UnassignedVideo {
+  id: string
+  youtubeVideoId: string
+  title: string
+  thumbnailUrl: string
+  embeddable: boolean
+  privacyStatus: string
+}
+
+export interface SyncResult {
+  channelVideosFound: number
+  newVideos: number
+  updatedVideos: number
+}

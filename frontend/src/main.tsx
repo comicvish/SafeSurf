@@ -6,14 +6,17 @@ import './styles/global.css'
 import App from './App.tsx'
 import { AuthProvider } from './lib/authContext'
 import { ProgressProvider } from './lib/progressContext'
+import { AdminProvider } from './lib/adminContext'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
       <AuthProvider>
-        <ProgressProvider>
-          <App />
-        </ProgressProvider>
+        <AdminProvider>
+          <ProgressProvider>
+            <App />
+          </ProgressProvider>
+        </AdminProvider>
       </AuthProvider>
     </BrowserRouter>
   </StrictMode>,

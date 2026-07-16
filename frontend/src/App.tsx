@@ -9,6 +9,8 @@ import Login from './pages/Login'
 import Signup from './pages/Signup'
 import Dashboard from './pages/Dashboard'
 import ProtectedRoute from './components/ProtectedRoute'
+import AdminRoute from './components/AdminRoute'
+import Admin from './pages/Admin'
 import ComingSoon from './pages/ComingSoon'
 
 export default function App() {
@@ -28,6 +30,14 @@ export default function App() {
             <ProtectedRoute>
               <Dashboard />
             </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <AdminRoute>
+              <Admin />
+            </AdminRoute>
           }
         />
         <Route path="*" element={<ComingSoon title="Not found" />} />

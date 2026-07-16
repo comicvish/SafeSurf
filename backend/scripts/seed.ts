@@ -8,6 +8,9 @@ const PLACEHOLDER_VIDEO: VideoDoc = {
   title: 'Placeholder lesson video',
   description: 'Sample video standing in for a real SafeSurf lesson recording.',
   thumbnailUrl: 'https://i.ytimg.com/vi/aqz-KE-bpKQ/hqdefault.jpg',
+  embeddable: true,
+  privacyStatus: 'public',
+  status: 'assigned',
 }
 
 async function seedVideo(id: string): Promise<void> {

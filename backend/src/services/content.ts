@@ -10,6 +10,30 @@ import type {
   VideoDoc,
 } from '../types.js'
 
+export async function createLesson(input: {
+  unitId: string
+  videoId: string
+  title: string
+  order: number
+  summary: string
+}): Promise<string> {
+  const [unitSnap, videoSnap] = await Promise.all([
+    db.collection('units').doc(input.unitId).get(),
+    db.collection('videos').doc(input.videoId).get(),
+  ])
+  if (!unitSnap.exists) throw new Error('Unit not found')
+  if (!videoSnap.exists) throw new Error('Video not found')
+
+  const ref = await db.collection('lessons').add({
+    unitId: input.unitId,
+    videoId: input.videoId,
+    title: input.title,
+    order: input.order,
+    summary: input.summary,
+  } satisfies LessonDoc)
+  return ref.id
+}
+
 export async function listCourses(): Promise<CourseSummary[]> {
   const [coursesSnap, unitsSnap, lessonsSnap] = await Promise.all([
     db.collection('courses').orderBy('order').get(),

@@ -15,6 +15,18 @@ export interface VideoDoc {
   title: string
   description: string
   thumbnailUrl: string
+  embeddable: boolean
+  privacyStatus: string
+  status: 'unassigned' | 'assigned'
+}
+
+export interface UnassignedVideo {
+  id: string
+  youtubeVideoId: string
+  title: string
+  thumbnailUrl: string
+  embeddable: boolean
+  privacyStatus: string
 }
 
 export interface LessonDoc {
@@ -62,4 +74,10 @@ export interface LessonDetail {
 export interface ProgressDoc {
   completed: true
   completedAt: string
+}
+
+export interface SyncResult {
+  channelVideosFound: number
+  newVideos: number
+  updatedVideos: number
 }

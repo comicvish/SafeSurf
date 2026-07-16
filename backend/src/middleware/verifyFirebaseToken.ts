@@ -10,6 +10,7 @@ export async function verifyFirebaseToken(req: Request, res: Response, next: Nex
   try {
     const decoded = await auth.verifyIdToken(header.slice('Bearer '.length))
     res.locals.uid = decoded.uid
+    res.locals.email = decoded.email ?? null
     next()
   } catch {
     res.status(401).json({ error: 'Invalid or expired token' })

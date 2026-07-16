@@ -1,8 +1,10 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from '../lib/authContext'
+import { useIsAdmin } from '../lib/adminContext'
 
 export default function Header() {
   const { user, signOutUser } = useAuth()
+  const { isAdmin } = useIsAdmin()
 
   return (
     <header className="site-header">
@@ -13,6 +15,7 @@ export default function Header() {
       <nav aria-label="Main navigation">
         <Link to="/courses">Courses</Link>
         <Link to="/dashboard">My progress</Link>
+        {isAdmin && <Link to="/admin">Admin</Link>}
       </nav>
       {user ? (
         <button className="header-cta" onClick={() => void signOutUser()}>

@@ -1,4 +1,4 @@
-import type { CourseDetail, CourseSummary, LessonDetail } from './types'
+import type { CourseDetail, CourseSummary, LessonDetail, SyncResult, UnassignedVideo } from './types'
 import { auth } from './firebaseClient'
 
 async function authHeaders(): Promise<HeadersInit> {
@@ -35,5 +35,37 @@ export async function setLessonComplete(lessonId: string, completed: boolean): P
     method: 'PUT',
     headers: { ...(await authHeaders()), 'Content-Type': 'application/json' },
     body: JSON.stringify({ completed }),
+  })
+}
+
+export async function checkIsAdmin(): Promise<boolean> {
+  const data = await getJson<{ isAdmin: boolean }>('/api/admin/me', { headers: await authHeaders() })
+  return data.isAdmin
+}
+
+export async function triggerYoutubeSync(): Promise<SyncResult> {
+  const data = await getJson<{ result: SyncResult }>('/api/admin/sync-youtube', {
+    method: 'POST',
+    headers: await authHeaders(),
+  })
+  return data.result
+}
+
+export async function listUnassignedVideos(): Promise<UnassignedVideo[]> {
+  const data = await getJson<{ videos: UnassignedVideo[] }>('/api/admin/videos', { headers: await authHeaders() })
+  return data.videos
+}
+
+export async function assignVideoToLesson(input: {
+  unitId: string
+  videoId: string
+  title: string
+  order: number
+  summary: string
+}): Promise<void> {
+  await getJson('/api/admin/lessons', {
+    method: 'POST',
+    headers: { ...(await authHeaders()), 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
   })
 }

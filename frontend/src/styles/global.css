@@ -406,3 +406,86 @@ footer small {
   font-weight: 700;
   margin-bottom: 30px;
 }
+
+.admin-sync-result {
+  margin: 14px 0 0;
+  font-size: 14px;
+  color: #3e5c58;
+}
+
+.admin-section-title {
+  margin: 36px 0 16px;
+  font-size: 22px;
+}
+
+.admin-video-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.admin-video-card {
+  display: flex;
+  gap: 16px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
+}
+
+.admin-video-card img {
+  width: 140px;
+  height: 79px;
+  object-fit: cover;
+  border-radius: 4px;
+  flex: none;
+}
+
+.admin-video-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.admin-warning {
+  align-self: flex-start;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  background: #ffe1b8;
+  color: #7a4a00;
+  padding: 3px 8px;
+  border-radius: 3px;
+}
+
+.admin-assign-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 420px;
+  margin-top: 6px;
+}
+
+.admin-assign-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.admin-assign-form input,
+.admin-assign-form select,
+.admin-assign-form textarea {
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  font: inherit;
+  font-size: 14px;
+}
+
+.admin-assign-actions {
+  display: flex;
+  gap: 10px;
+}

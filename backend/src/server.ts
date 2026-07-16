@@ -6,6 +6,7 @@ import { healthRouter } from './routes/health.js'
 import { coursesRouter } from './routes/courses.js'
 import { lessonsRouter } from './routes/lessons.js'
 import { progressRouter } from './routes/progress.js'
+import { adminRouter } from './routes/admin.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const frontendDist = path.join(__dirname, '../../frontend/dist')
@@ -19,6 +20,7 @@ app.use('/api', healthRouter)
 app.use('/api', coursesRouter)
 app.use('/api', lessonsRouter)
 app.use('/api', progressRouter)
+app.use('/api', adminRouter)
 
 app.use(express.static(frontendDist))
 
