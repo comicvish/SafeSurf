@@ -45,24 +45,6 @@ export default function Home() {
         </div>
       </section>
 
-      {courses.length > 0 && (
-        <section className="featured-courses section-shell">
-          <h2>Start learning</h2>
-          <div className="course-grid">
-            {courses.map((course) => (
-              <Link key={course.id} className="course-card" to={`/courses/${course.id}`}>
-                <h2>{course.title}</h2>
-                <p>{course.description}</p>
-                <span>
-                  {course.unitCount} unit{course.unitCount === 1 ? '' : 's'} · {course.lessonCount} lesson
-                  {course.lessonCount === 1 ? '' : 's'}
-                </span>
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
-
       <section className="community-teaser section-shell">
         <div className="community-teaser-card">
           <div>
@@ -80,6 +62,24 @@ export default function Home() {
           </Link>
         </div>
       </section>
+
+      {courses.length > 0 && (
+        <section className="featured-courses section-shell">
+          <h2>Start learning</h2>
+          <div className="course-grid">
+            {courses.map((course) => (
+              <Link key={course.id} className="course-card" to={`/courses/${course.id}`}>
+                <h2>{course.title}</h2>
+                <p>{course.description}</p>
+                <span>
+                  {course.unitCount} unit{course.unitCount === 1 ? '' : 's'} · {course.lessonCount} lesson
+                  {course.lessonCount === 1 ? '' : 's'}
+                </span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
     </main>
   )
 }
