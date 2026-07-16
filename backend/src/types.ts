@@ -32,7 +32,6 @@ export interface UnassignedVideo {
 export interface LessonDoc {
   unitId: string
   videoId: string
-  title: string
   order: number
   summary: string
 }
@@ -80,4 +79,52 @@ export interface SyncResult {
   channelVideosFound: number
   newVideos: number
   updatedVideos: number
+}
+
+export interface PracticeQuestionDoc {
+  id: string
+  prompt: string
+  options: string[]
+  correctIndex: number
+  explanation: string
+}
+
+export interface PracticeSessionDoc {
+  lessonId: string
+  questions: PracticeQuestionDoc[]
+  generatedAt: string
+  model: string
+}
+
+export interface PracticeSession {
+  lessonId: string
+  questions: PracticeQuestionDoc[]
+}
+
+export interface UserStatsDoc {
+  xp: number
+  currentStreak: number
+  longestStreak: number
+  lastPracticeDate: string | null
+}
+
+export interface UserStats {
+  xp: number
+  currentStreak: number
+  longestStreak: number
+}
+
+export interface PracticeResultDoc {
+  lessonId: string
+  score: number
+  totalQuestions: number
+  xpEarned: number
+  completedAt: string
+}
+
+export interface PracticeSubmitResult {
+  score: number
+  totalQuestions: number
+  xpEarned: number
+  stats: UserStats
 }

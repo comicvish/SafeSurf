@@ -6,6 +6,7 @@ import { asyncHandler } from '../middleware/asyncHandler.js'
 import { syncYoutubeVideos } from '../services/youtube.js'
 import { listUnassignedVideos, markVideoAssigned } from '../services/videos.js'
 import { createLesson } from '../services/content.js'
+import { generatePracticeSession } from '../services/practice.js'
 
 export const adminRouter = Router()
 
@@ -41,19 +42,32 @@ adminRouter.post(
   verifyFirebaseToken,
   requireAdmin,
   asyncHandler(async (req, res) => {
-    const body = req.body as { unitId?: string; videoId?: string; title?: string; order?: number; summary?: string }
-    if (!body.unitId || !body.videoId || !body.title || typeof body.order !== 'number' || !body.summary) {
-      res.status(400).json({ error: 'unitId, videoId, title, order, and summary are required' })
+    const body = req.body as { unitId?: string; videoId?: string; order?: number; summary?: string }
+    if (!body.unitId || !body.videoId || typeof body.order !== 'number' || !body.summary) {
+      res.status(400).json({ error: 'unitId, videoId, order, and summary are required' })
       return
     }
-    const lessonId = await createLesson({
+    const { lessonId, video } = await createLesson({
       unitId: body.unitId,
       videoId: body.videoId,
-      title: body.title,
       order: body.order,
       summary: body.summary,
     })
     await markVideoAssigned(body.videoId)
-    res.status(201).json({ lessonId })
+
+    let practiceGenerated = true
+    try {
+      await generatePracticeSession(lessonId, {
+        lessonTitle: video.title,
+        lessonSummary: body.summary,
+        videoTitle: video.title,
+        videoDescription: video.description,
+      })
+    } catch (err) {
+      practiceGenerated = false
+      console.error(`Practice generation failed for lesson ${lessonId}`, err)
+    }
+
+    res.status(201).json({ lessonId, practiceGenerated })
   }),
 )

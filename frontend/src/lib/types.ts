@@ -46,3 +46,29 @@ export interface SyncResult {
   newVideos: number
   updatedVideos: number
 }
+
+export interface PracticeQuestion {
+  id: string
+  prompt: string
+  options: string[]
+  correctIndex: number
+  explanation: string
+}
+
+export interface PracticeSession {
+  lessonId: string
+  questions: PracticeQuestion[]
+}
+
+export interface UserStats {
+  xp: number
+  currentStreak: number
+  longestStreak: number
+}
+
+export interface PracticeSubmitResult {
+  score: number
+  totalQuestions: number
+  xpEarned: number
+  stats: UserStats
+}

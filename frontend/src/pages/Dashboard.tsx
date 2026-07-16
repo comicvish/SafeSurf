@@ -3,11 +3,13 @@ import { Link } from 'react-router-dom'
 import { getCourse, listCourses } from '../lib/api'
 import { useAuth } from '../lib/authContext'
 import { useProgress } from '../lib/progressContext'
+import { useStats } from '../lib/statsContext'
 import type { CourseDetail } from '../lib/types'
 
 export default function Dashboard() {
   const { user, signOutUser } = useAuth()
   const { completedLessonIds } = useProgress()
+  const { stats } = useStats()
   const [courses, setCourses] = useState<CourseDetail[] | null>(null)
 
   useEffect(() => {
@@ -28,6 +30,21 @@ export default function Dashboard() {
       <p className="dashboard-summary">
         {completedLessonIds.size} of {totalLessons} lessons complete
       </p>
+
+      <div className="stats-row">
+        <div className="stat-tile">
+          <strong>{stats.xp}</strong>
+          <span>Total XP</span>
+        </div>
+        <div className="stat-tile">
+          <strong>🔥 {stats.currentStreak}</strong>
+          <span>Day streak</span>
+        </div>
+        <div className="stat-tile">
+          <strong>{stats.longestStreak}</strong>
+          <span>Longest streak</span>
+        </div>
+      </div>
 
       {!courses && <p>Loading…</p>}
 

@@ -9,6 +9,7 @@ export default function Admin() {
   const [syncResult, setSyncResult] = useState<SyncResult | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [assigningVideoId, setAssigningVideoId] = useState<string | null>(null)
+  const [assignNote, setAssignNote] = useState<string | null>(null)
 
   const refreshVideos = () => listUnassignedVideos().then(setVideos).catch(() => setError('Could not load unassigned videos.'))
 
@@ -49,6 +50,7 @@ export default function Admin() {
       {error && <p className="auth-error">{error}</p>}
 
       <h2 className="admin-section-title">Unassigned videos ({videos.length})</h2>
+      {assignNote && <p className="admin-sync-result">{assignNote}</p>}
       {videos.length === 0 && <p>No unassigned videos right now.</p>}
       <div className="admin-video-list">
         {videos.map((video) => (
@@ -62,8 +64,13 @@ export default function Admin() {
                 <AssignForm
                   video={video}
                   courses={courses}
-                  onDone={() => {
+                  onDone={(practiceGenerated) => {
                     setAssigningVideoId(null)
+                    setAssignNote(
+                      practiceGenerated
+                        ? 'Lesson created and a practice quiz was generated.'
+                        : 'Lesson created, but the practice quiz could not be generated — check the server logs.',
+                    )
                     void refreshVideos()
                   }}
                   onCancel={() => setAssigningVideoId(null)}
@@ -89,13 +96,12 @@ function AssignForm({
 }: {
   video: UnassignedVideo
   courses: CourseSummary[]
-  onDone: () => void
+  onDone: (practiceGenerated: boolean) => void
   onCancel: () => void
 }) {
   const [courseId, setCourseId] = useState('')
   const [units, setUnits] = useState<UnitWithLessons[]>([])
   const [unitId, setUnitId] = useState('')
-  const [title, setTitle] = useState(video.title)
   const [order, setOrder] = useState(1)
   const [summary, setSummary] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -112,16 +118,21 @@ function AssignForm({
       .catch(() => setUnits([]))
   }, [courseId])
 
+  useEffect(() => {
+    const unit = units.find((u) => u.id === unitId)
+    if (unit) setOrder(unit.lessons.length + 1)
+  }, [unitId, units])
+
   const handleSubmit = async () => {
-    if (!unitId || !title || !summary) {
-      setError('Unit, title, and summary are required.')
+    if (!unitId || !summary) {
+      setError('Unit and summary are required.')
       return
     }
     setSubmitting(true)
     setError(null)
     try {
-      await assignVideoToLesson({ unitId, videoId: video.id, title, order, summary })
-      onDone()
+      const result = await assignVideoToLesson({ unitId, videoId: video.id, order, summary })
+      onDone(result.practiceGenerated)
     } catch {
       setError('Could not assign this video.')
     } finally {
@@ -152,10 +163,6 @@ function AssignForm({
             </option>
           ))}
         </select>
-      </label>
-      <label>
-        Lesson title
-        <input value={title} onChange={(e) => setTitle(e.target.value)} />
       </label>
       <label>
         Order within unit

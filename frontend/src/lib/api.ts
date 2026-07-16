@@ -1,4 +1,13 @@
-import type { CourseDetail, CourseSummary, LessonDetail, SyncResult, UnassignedVideo } from './types'
+import type {
+  CourseDetail,
+  CourseSummary,
+  LessonDetail,
+  PracticeSession,
+  PracticeSubmitResult,
+  SyncResult,
+  UnassignedVideo,
+  UserStats,
+} from './types'
 import { auth } from './firebaseClient'
 
 async function authHeaders(): Promise<HeadersInit> {
@@ -59,13 +68,33 @@ export async function listUnassignedVideos(): Promise<UnassignedVideo[]> {
 export async function assignVideoToLesson(input: {
   unitId: string
   videoId: string
-  title: string
   order: number
   summary: string
-}): Promise<void> {
-  await getJson('/api/admin/lessons', {
+}): Promise<{ practiceGenerated: boolean }> {
+  return getJson('/api/admin/lessons', {
     method: 'POST',
     headers: { ...(await authHeaders()), 'Content-Type': 'application/json' },
     body: JSON.stringify(input),
   })
+}
+
+export async function getPracticeSession(lessonId: string): Promise<PracticeSession | null> {
+  const res = await fetch(`/api/lessons/${lessonId}/practice`)
+  if (res.status === 404) return null
+  if (!res.ok) throw new Error(`Request to /api/lessons/${lessonId}/practice failed with ${res.status}`)
+  const data = (await res.json()) as { practice: PracticeSession }
+  return data.practice
+}
+
+export async function submitPractice(lessonId: string, answers: number[]): Promise<PracticeSubmitResult> {
+  return getJson(`/api/lessons/${lessonId}/practice/submit`, {
+    method: 'POST',
+    headers: { ...(await authHeaders()), 'Content-Type': 'application/json' },
+    body: JSON.stringify({ answers }),
+  })
+}
+
+export async function getStats(): Promise<UserStats> {
+  const data = await getJson<{ stats: UserStats }>('/api/stats', { headers: await authHeaders() })
+  return data.stats
 }

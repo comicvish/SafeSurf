@@ -2,10 +2,12 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../lib/authContext'
 import { useIsAdmin } from '../lib/adminContext'
+import { useStats } from '../lib/statsContext'
 
 export default function Header() {
   const { user, signOutUser } = useAuth()
   const { isAdmin } = useIsAdmin()
+  const { stats } = useStats()
   const [menuOpen, setMenuOpen] = useState(false)
 
   return (
@@ -26,8 +28,16 @@ export default function Header() {
         <span />
       </button>
       <nav id="main-navigation" aria-label="Main navigation" className={menuOpen ? 'open' : undefined}>
+        {user && (
+          <span className="header-stats" aria-label={`${stats.currentStreak} day streak, ${stats.xp} XP`}>
+            🔥 {stats.currentStreak} · {stats.xp} XP
+          </span>
+        )}
         <Link to="/courses" onClick={() => setMenuOpen(false)}>
           Courses
+        </Link>
+        <Link to="/for-communities" onClick={() => setMenuOpen(false)}>
+          For Communities
         </Link>
         <Link to="/dashboard" onClick={() => setMenuOpen(false)}>
           My progress

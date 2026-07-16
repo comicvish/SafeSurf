@@ -1,3 +1,4 @@
+import { FieldPath } from '@google-cloud/firestore'
 import { db } from './firestore.js'
 import type {
   CourseDetail,
@@ -13,25 +14,24 @@ import type {
 export async function createLesson(input: {
   unitId: string
   videoId: string
-  title: string
   order: number
   summary: string
-}): Promise<string> {
+}): Promise<{ lessonId: string; video: { title: string; description: string } }> {
   const [unitSnap, videoSnap] = await Promise.all([
     db.collection('units').doc(input.unitId).get(),
     db.collection('videos').doc(input.videoId).get(),
   ])
   if (!unitSnap.exists) throw new Error('Unit not found')
   if (!videoSnap.exists) throw new Error('Video not found')
+  const video = videoSnap.data() as VideoDoc
 
   const ref = await db.collection('lessons').add({
     unitId: input.unitId,
     videoId: input.videoId,
-    title: input.title,
     order: input.order,
     summary: input.summary,
   } satisfies LessonDoc)
-  return ref.id
+  return { lessonId: ref.id, video: { title: video.title, description: video.description } }
 }
 
 export async function listCourses(): Promise<CourseSummary[]> {
@@ -78,20 +78,36 @@ export async function getCourseDetail(courseId: string): Promise<CourseDetail | 
   const unitsSnap = await db.collection('units').where('courseId', '==', courseId).orderBy('order').get()
   const unitIds = unitsSnap.docs.map((doc) => doc.id)
 
-  const lessonsByUnit = new Map<string, UnitWithLessons['lessons']>()
+  const lessonsByUnit = new Map<string, { id: string; videoId: string; order: number; summary: string }[]>()
   if (unitIds.length > 0) {
     const lessonsSnap = await db.collection('lessons').where('unitId', 'in', unitIds).get()
     lessonsSnap.forEach((doc) => {
       const data = doc.data() as LessonDoc
       const list = lessonsByUnit.get(data.unitId) ?? []
-      list.push({ id: doc.id, title: data.title, order: data.order, summary: data.summary })
+      list.push({ id: doc.id, videoId: data.videoId, order: data.order, summary: data.summary })
       lessonsByUnit.set(data.unitId, list)
     })
   }
 
+  // Lesson titles are never stored on the lesson — they always mirror the
+  // linked video's current title, so a rename on YouTube shows up here too.
+  const videoIds = [...new Set([...lessonsByUnit.values()].flat().map((lesson) => lesson.videoId))]
+  const titleByVideoId = new Map<string, string>()
+  if (videoIds.length > 0) {
+    const videosSnap = await db.collection('videos').where(FieldPath.documentId(), 'in', videoIds).get()
+    videosSnap.forEach((doc) => titleByVideoId.set(doc.id, (doc.data() as VideoDoc).title))
+  }
+
   const units: UnitWithLessons[] = unitsSnap.docs.map((doc) => {
     const data = doc.data() as UnitDoc
-    const lessons = (lessonsByUnit.get(doc.id) ?? []).sort((a, b) => a.order - b.order)
+    const lessons = (lessonsByUnit.get(doc.id) ?? [])
+      .map((lesson) => ({
+        id: lesson.id,
+        title: titleByVideoId.get(lesson.videoId) ?? '',
+        order: lesson.order,
+        summary: lesson.summary,
+      }))
+      .sort((a, b) => a.order - b.order)
     return { id: doc.id, title: data.title, order: data.order, lessons }
   })
 
@@ -123,7 +139,7 @@ export async function getLessonDetail(lessonId: string): Promise<LessonDetail | 
 
   return {
     id: lessonId,
-    title: lesson.title,
+    title: video.title,
     summary: lesson.summary,
     video: { youtubeVideoId: video.youtubeVideoId, title: video.title, description: video.description },
     unit: { id: lesson.unitId, title: unit.title },

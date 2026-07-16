@@ -62,6 +62,24 @@ export default function Home() {
           </div>
         </section>
       )}
+
+      <section className="community-teaser section-shell">
+        <div className="community-teaser-card">
+          <div>
+            <p className="eyebrow">
+              <span></span> For senior living communities
+            </p>
+            <h2>Bring this course to your residents in person.</h2>
+            <p>
+              Our team leads a live, four-week course at senior living communities and similar spaces — covering
+              spam calls, AI voices, and AI-generated images and video.
+            </p>
+          </div>
+          <Link className="button button-primary" to="/for-communities">
+            Learn about the in-person course
+          </Link>
+        </div>
+      </section>
     </main>
   )
 }

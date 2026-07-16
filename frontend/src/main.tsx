@@ -7,6 +7,7 @@ import App from './App.tsx'
 import { AuthProvider } from './lib/authContext'
 import { ProgressProvider } from './lib/progressContext'
 import { AdminProvider } from './lib/adminContext'
+import { StatsProvider } from './lib/statsContext'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -14,7 +15,9 @@ createRoot(document.getElementById('root')!).render(
       <AuthProvider>
         <AdminProvider>
           <ProgressProvider>
-            <App />
+            <StatsProvider>
+              <App />
+            </StatsProvider>
           </ProgressProvider>
         </AdminProvider>
       </AuthProvider>
