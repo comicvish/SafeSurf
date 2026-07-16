@@ -1,0 +1,21 @@
+import { Route, Routes } from 'react-router-dom'
+import Header from './components/Header'
+import Footer from './components/Footer'
+import Home from './pages/Home'
+import ComingSoon from './pages/ComingSoon'
+
+export default function App() {
+  return (
+    <>
+      <Header />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/courses" element={<ComingSoon title="Courses" />} />
+        <Route path="/dashboard" element={<ComingSoon title="My progress" />} />
+        <Route path="/login" element={<ComingSoon title="Sign in" />} />
+        <Route path="*" element={<ComingSoon title="Not found" />} />
+      </Routes>
+      <Footer />
+    </>
+  )
+}
