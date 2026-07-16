@@ -820,6 +820,69 @@ footer small {
   color: #52697f;
 }
 
+.schedule {
+  padding-top: 0;
+}
+
+.schedule > h2 {
+  font-size: clamp(28px, 3vw, 38px);
+  margin-bottom: 8px;
+}
+
+.schedule-calendar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 10px;
+  margin-top: 32px;
+  padding: 24px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+.schedule-day-label {
+  text-align: center;
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  text-transform: uppercase;
+  color: #7f93a6;
+  padding-bottom: 6px;
+}
+
+.schedule-cell {
+  min-height: 108px;
+  border-radius: 8px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+}
+
+.schedule-cell.session {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: var(--navy);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 6px;
+  padding: 10px 6px;
+}
+
+.schedule-cell-week {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.schedule-cell-topic {
+  font-family: Fraunces, Georgia, serif;
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 1.2;
+}
+
 .community-cta {
   background: var(--navy);
   color: #fff;
@@ -848,6 +911,50 @@ footer small {
 .community-cta-secondary a {
   color: #fff;
   text-decoration: underline;
+}
+
+.contact-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 460px;
+  margin: 40px auto 0;
+  text-align: left;
+}
+
+.contact-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-weight: 600;
+  font-size: 14px;
+  color: #fff;
+}
+
+.contact-form .optional {
+  font-weight: 500;
+  color: #9fb3c8;
+}
+
+.contact-form input,
+.contact-form textarea {
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 5px;
+  font: inherit;
+  font-size: 15px;
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--ink);
+}
+
+.contact-form button {
+  align-self: flex-start;
+}
+
+.contact-form-note {
+  margin: 0;
+  font-size: 13px;
+  color: #9fb3c8;
 }
 
 a:focus-visible,
@@ -932,6 +1039,27 @@ textarea:focus-visible {
   .curriculum-week {
     flex-direction: column;
     gap: 10px;
+  }
+
+  .schedule-calendar {
+    gap: 6px;
+    padding: 14px;
+  }
+
+  .schedule-cell {
+    min-height: 74px;
+  }
+
+  .schedule-day-label {
+    font-size: 10px;
+  }
+
+  .schedule-cell-week {
+    font-size: 9px;
+  }
+
+  .schedule-cell-topic {
+    font-size: 11px;
   }
 
   footer {
