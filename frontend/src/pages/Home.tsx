@@ -1,21 +1,6 @@
-import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { listCourses } from '../lib/api'
-import type { CourseSummary } from '../lib/types'
 
 export default function Home() {
-  const [courses, setCourses] = useState<CourseSummary[]>([])
-  const [coursesStatus, setCoursesStatus] = useState<'loading' | 'ready' | 'error'>('loading')
-
-  useEffect(() => {
-    listCourses()
-      .then((data) => {
-        setCourses(data.courses)
-        setCoursesStatus('ready')
-      })
-      .catch(() => setCoursesStatus('error'))
-  }, [])
-
   return (
     <main>
       <section className="hero-shell">
@@ -73,32 +58,6 @@ export default function Home() {
           <p>Short video lessons in a clear order, with your progress saved as you go.</p>
         </div>
       </section>
-
-      {coursesStatus === 'error' && (
-        <section className="featured-courses section-shell">
-          <p className="course-load-error">Couldn't load courses right now — try refreshing the page.</p>
-        </section>
-      )}
-
-      {coursesStatus === 'ready' && courses.length > 0 && (
-        <section className="featured-courses section-shell">
-          <h2>Start learning</h2>
-          <ul className="course-grid" role="list">
-            {courses.map((course) => (
-              <li key={course.id}>
-                <Link className="course-card" to={`/courses/${course.id}`}>
-                  <h2>{course.title}</h2>
-                  <p>{course.description}</p>
-                  <span>
-                    {course.unitCount} unit{course.unitCount === 1 ? '' : 's'} · {course.lessonCount} lesson
-                    {course.lessonCount === 1 ? '' : 's'}
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
     </main>
   )
 }

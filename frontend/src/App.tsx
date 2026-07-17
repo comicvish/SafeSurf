@@ -11,6 +11,7 @@ import Practice from './pages/Practice'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
 import Dashboard from './pages/Dashboard'
+import MyAccount from './pages/MyAccount'
 import ProtectedRoute from './components/ProtectedRoute'
 import AdminRoute from './components/AdminRoute'
 import Admin from './pages/Admin'
@@ -45,6 +46,14 @@ export default function App() {
           element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/account"
+          element={
+            <ProtectedRoute>
+              <MyAccount />
             </ProtectedRoute>
           }
         />

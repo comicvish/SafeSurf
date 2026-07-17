@@ -111,10 +111,11 @@ a {
 .brand {
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: 10px;
   text-decoration: none;
   color: var(--ink);
-  font-weight: 800;
+  font-family: Fraunces, Georgia, serif;
+  font-weight: 700;
   font-size: 23px;
 }
 
@@ -125,6 +126,10 @@ a {
   object-position: center 40%;
   border-radius: 50%;
   background: var(--black);
+  /* Forces its own compositing layer so the border-radius clip doesn't seam against
+     the header's backdrop-filter blur (visible as a thin dark ring on desktop Chrome). */
+  transform: translateZ(0);
+  isolation: isolate;
 }
 
 .site-header nav {
@@ -140,7 +145,7 @@ a {
   font-size: 14px;
 }
 
-.site-header nav a.active {
+.site-header nav a.active:not(.header-cta) {
   color: var(--blue);
 }
 
@@ -315,6 +320,36 @@ a {
 
 .button-secondary-dark:active {
   background: rgba(255, 255, 255, 0.14);
+}
+
+.button-secondary {
+  background: #fff;
+  color: var(--navy);
+  border: 1px solid var(--line);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset, 0 4px 10px -6px rgba(15, 44, 82, 0.25);
+}
+
+.button-secondary:hover {
+  border-color: var(--blue);
+}
+
+.button-secondary:active {
+  box-shadow: 0 2px 5px -2px rgba(15, 44, 82, 0.3) inset;
+}
+
+.button-danger {
+  background: var(--danger-tint);
+  color: var(--danger);
+  border: 1px solid rgba(179, 38, 30, 0.35);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5) inset, 0 5px 14px -4px rgba(179, 38, 30, 0.35);
+}
+
+.button-danger:hover {
+  background: #f9d0cc;
+}
+
+.button-danger:active {
+  box-shadow: 0 2px 5px -2px rgba(179, 38, 30, 0.4) inset;
 }
 
 .eyebrow {
@@ -927,6 +962,107 @@ footer small {
 .dashboard-user {
   color: #52697f;
   margin: -10px 0 6px;
+}
+
+.account-page {
+  max-width: 640px;
+}
+
+.account-section {
+  margin-top: 36px;
+  padding-top: 28px;
+  border-top: 1px solid var(--line);
+}
+
+.account-section:first-of-type {
+  margin-top: 28px;
+}
+
+.account-section h2 {
+  font-size: 19px;
+  margin: 0 0 14px;
+}
+
+.account-section > p {
+  margin: 0 0 14px;
+  color: #52697f;
+}
+
+.account-detail-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+}
+
+.account-detail-list div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 18px;
+  border-radius: 8px;
+  background: rgba(219, 232, 246, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+}
+
+.account-detail-list dt {
+  font-weight: 600;
+  color: #34506b;
+}
+
+.account-detail-list dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+.account-status {
+  color: var(--success);
+  font-weight: 600;
+}
+
+.account-danger-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 18px 0;
+}
+
+.account-danger-row + .account-danger-row {
+  border-top: 1px solid var(--line);
+}
+
+.account-danger-row strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.account-danger-row p {
+  margin: 0;
+  font-size: 14px;
+  color: #52697f;
+  max-width: 40ch;
+}
+
+.account-danger-row .button {
+  flex: none;
+}
+
+.account-delete-confirm {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  max-width: 260px;
+}
+
+.account-delete-confirm .auth-error {
+  text-align: right;
+}
+
+.account-delete-confirm-actions {
+  display: flex;
+  gap: 10px;
 }
 
 .dashboard-summary {

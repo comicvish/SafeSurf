@@ -108,6 +108,13 @@ export async function getStats(): Promise<UserStats> {
   return data.stats
 }
 
+export async function deleteAccount(): Promise<void> {
+  const res = await fetch('/api/account', { method: 'DELETE', headers: await authHeaders() })
+  if (!res.ok) {
+    throw new Error(`Request to /api/account failed with ${res.status}`)
+  }
+}
+
 export async function sendInquiry(input: {
   name: string
   email: string

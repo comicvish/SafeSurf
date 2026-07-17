@@ -5,7 +5,7 @@ import { useIsAdmin } from '../lib/adminContext'
 import { useStats } from '../lib/statsContext'
 
 export default function Header() {
-  const { user, signOutUser } = useAuth()
+  const { user } = useAuth()
   const { isAdmin } = useIsAdmin()
   const { stats } = useStats()
   const [menuOpen, setMenuOpen] = useState(false)
@@ -48,15 +48,9 @@ export default function Header() {
           </NavLink>
         )}
         {user ? (
-          <button
-            className="header-cta"
-            onClick={() => {
-              setMenuOpen(false)
-              void signOutUser()
-            }}
-          >
-            Sign out
-          </button>
+          <NavLink className="header-cta" to="/account" onClick={() => setMenuOpen(false)}>
+            My Account
+          </NavLink>
         ) : (
           <Link className="header-cta" to="/login" onClick={() => setMenuOpen(false)}>
             Sign in
