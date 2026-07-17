@@ -98,3 +98,20 @@ export async function getStats(): Promise<UserStats> {
   const data = await getJson<{ stats: UserStats }>('/api/stats', { headers: await authHeaders() })
   return data.stats
 }
+
+export async function sendInquiry(input: {
+  name: string
+  email: string
+  preferredDate?: string
+  message: string
+}): Promise<void> {
+  const res = await fetch('/api/inquiries', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  })
+  if (!res.ok) {
+    const data = (await res.json().catch(() => null)) as { error?: string } | null
+    throw new Error(data?.error || `Request to /api/inquiries failed with ${res.status}`)
+  }
+}

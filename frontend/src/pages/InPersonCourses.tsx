@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
+import { sendInquiry } from '../lib/api'
 
 const CONTACT_EMAIL = 'verablockeducators@gmail.com'
 const PAGE_TITLE = 'In-Person Courses | VeraBlock'
@@ -130,26 +131,41 @@ export default function InPersonCourses() {
   )
 }
 
+type SubmitStatus = 'idle' | 'sending' | 'sent' | 'error'
+
 function ContactForm() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [preferredDate, setPreferredDate] = useState('')
   const [message, setMessage] = useState('')
+  const [status, setStatus] = useState<SubmitStatus>('idle')
+  const [errorMessage, setErrorMessage] = useState('')
 
   const handleSubmit = (event: FormEvent) => {
     event.preventDefault()
-    const subject = 'Interested in the VeraBlock in-person course'
-    const body = [
-      `Name: ${name}`,
-      `Email: ${email}`,
-      preferredDate ? `Preferred start date: ${preferredDate}` : null,
-      '',
-      message,
-    ]
-      .filter((line) => line !== null)
-      .join('\n')
+    setStatus('sending')
+    setErrorMessage('')
 
-    window.location.href = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+    sendInquiry({ name, email, preferredDate: preferredDate || undefined, message })
+      .then(() => {
+        setStatus('sent')
+        setName('')
+        setEmail('')
+        setPreferredDate('')
+        setMessage('')
+      })
+      .catch((err: unknown) => {
+        setStatus('error')
+        setErrorMessage(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
+      })
+  }
+
+  if (status === 'sent') {
+    return (
+      <div className="contact-form-success">
+        <p>Thanks — your message is on its way to us. We'll get back to you soon.</p>
+      </div>
+    )
   }
 
   return (
@@ -176,10 +192,11 @@ function ContactForm() {
           placeholder="Tell us about your community and what you're looking for."
         />
       </label>
-      <button className="button button-primary" type="submit">
-        Send inquiry
+      <button className="button button-primary" type="submit" disabled={status === 'sending'}>
+        {status === 'sending' ? 'Sending…' : 'Send inquiry'}
       </button>
-      <p className="contact-form-note">This opens your email app with your message ready to send.</p>
+      {status === 'error' && <p className="contact-form-error">{errorMessage}</p>}
+      <p className="contact-form-note">We'll email you back at the address you provide.</p>
     </form>
   )
 }

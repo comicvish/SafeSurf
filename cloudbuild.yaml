@@ -30,8 +30,8 @@ steps:
       - --platform=managed
       - --allow-unauthenticated
       - --service-account=safesurf-run-sa@$PROJECT_ID.iam.gserviceaccount.com
-      - --set-env-vars=FIREBASE_PROJECT_ID=$PROJECT_ID,ADMIN_EMAILS=$_ADMIN_EMAILS,YOUTUBE_CHANNEL_ID=$_YOUTUBE_CHANNEL_ID,SCHEDULER_SERVICE_ACCOUNT_EMAIL=safesurf-scheduler-sa@$PROJECT_ID.iam.gserviceaccount.com,SCHEDULER_OIDC_AUDIENCE=$_SCHEDULER_OIDC_AUDIENCE
-      - --set-secrets=YOUTUBE_API_KEY=youtube-api-key:latest
+      - --set-env-vars=FIREBASE_PROJECT_ID=$PROJECT_ID,ADMIN_EMAILS=$_ADMIN_EMAILS,YOUTUBE_CHANNEL_ID=$_YOUTUBE_CHANNEL_ID,SCHEDULER_SERVICE_ACCOUNT_EMAIL=safesurf-scheduler-sa@$PROJECT_ID.iam.gserviceaccount.com,SCHEDULER_OIDC_AUDIENCE=$_SCHEDULER_OIDC_AUDIENCE,GMAIL_USER=$_GMAIL_USER
+      - --set-secrets=YOUTUBE_API_KEY=youtube-api-key:latest,GMAIL_APP_PASSWORD=gmail-app-password:latest
 
 images:
   - $_IMAGE
@@ -42,6 +42,7 @@ substitutions:
   _IMAGE: us-central1-docker.pkg.dev/safesurf-learn/safesurf/safesurf:latest
   _ADMIN_EMAILS: verablockeducators@gmail.com
   _YOUTUBE_CHANNEL_ID: UCleKAbI6ojw3A-dKSNChcqw
+  _GMAIL_USER: verablockeducators@gmail.com
   # Same audience the Cloud Scheduler job's OIDC token targets — must stay in
   # sync with the actual service URL (see `gcloud scheduler jobs describe`).
   _SCHEDULER_OIDC_AUDIENCE: https://safesurf-jbxibxbqsa-uc.a.run.app/api/admin/sync-youtube
