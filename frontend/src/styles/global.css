@@ -11,7 +11,7 @@ html {
 body {
   margin: 0;
   background-color: var(--paper);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  background-image: var(--grain-texture);
   color: var(--ink);
   font-family: 'DM Sans', Arial, sans-serif;
   font-size: 16px;
@@ -78,8 +78,12 @@ a {
   padding: 0 max(5vw, 28px);
   justify-content: space-between;
   border-bottom: 1px solid var(--line);
-  background: var(--paper);
-  position: relative;
+  background: rgba(244, 247, 251, 0.8);
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  position: sticky;
+  top: 0;
+  z-index: 50;
 }
 
 .brand {
@@ -146,7 +150,8 @@ a {
 
 .header-cta {
   color: #fff;
-  background: var(--navy);
+  background: linear-gradient(180deg, #163667 0%, var(--navy) 55%, #0b2242 100%);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.12) inset, 0 3px 8px -3px rgba(5, 21, 38, 0.5);
   padding: 11px 16px;
   font-size: 14px;
 }
@@ -159,15 +164,22 @@ a {
 .header-cta:active,
 .button:active {
   transform: scale(0.97);
+  box-shadow: 0 1px 3px -1px rgba(5, 21, 38, 0.4) inset;
 }
 
 .button {
   padding: 14px 18px;
+  transition: transform var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out);
 }
 
 .button-primary {
-  background: var(--gold);
+  background: linear-gradient(180deg, #f0b155 0%, var(--gold) 55%, #d38f2e 100%);
   color: var(--navy);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5) inset, 0 3px 8px -3px rgba(179, 110, 20, 0.55);
+}
+
+.button-primary:active {
+  box-shadow: 0 2px 5px -2px rgba(179, 110, 20, 0.5) inset;
 }
 
 .hero-shell {
@@ -199,12 +211,13 @@ a {
   gap: 12px;
   padding: 28px 30px;
   border-radius: 10px;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.4) inset, 0 10px 24px -16px rgba(10, 31, 51, 0.3);
   transition: transform var(--duration-base) var(--ease-out), box-shadow var(--duration-base) var(--ease-out);
 }
 
 .hero-path-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 16px 32px -18px rgba(10, 31, 51, 0.35);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.4) inset, 0 16px 32px -18px rgba(10, 31, 51, 0.35);
 }
 
 .hero-path-card h2 {
@@ -223,7 +236,10 @@ a {
 }
 
 .hero-path-card--light {
-  background: #dbe8f6;
+  background: rgba(219, 232, 246, 0.72);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
   color: var(--ink);
 }
 
@@ -232,7 +248,7 @@ a {
 }
 
 .hero-path-card--dark {
-  background: var(--navy);
+  background-image: var(--grain-texture), linear-gradient(165deg, #163667 0%, var(--navy) 45%, #0b2242 100%);
   color: #fff;
 }
 
@@ -320,7 +336,8 @@ a {
 
 footer {
   padding: 40px max(5vw, 28px) 28px;
-  background: var(--navy);
+  background-color: var(--navy);
+  background-image: var(--grain-texture);
   color: #e8eef5;
   display: flex;
   flex-direction: column;
@@ -378,7 +395,11 @@ footer small {
   gap: 10px;
   padding: 24px;
   border-radius: 8px;
-  background: #dbe8f6;
+  background: rgba(219, 232, 246, 0.85);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.4) inset, 0 6px 16px -14px rgba(15, 44, 82, 0.3);
   text-decoration: none;
   color: var(--ink);
   transition: transform var(--duration-base) var(--ease-out), box-shadow var(--duration-base) var(--ease-out);
@@ -386,7 +407,7 @@ footer small {
 
 .course-card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 12px 24px -14px rgba(15, 44, 82, 0.3);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.4) inset, 0 12px 24px -14px rgba(15, 44, 82, 0.3);
 }
 
 .course-card h2 {
@@ -646,7 +667,10 @@ footer small {
   font-size: 13px;
   font-weight: 500;
   color: #34506b;
-  background: var(--cream);
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.7);
   padding: 6px 10px;
   border-radius: 999px;
   white-space: nowrap;
