@@ -2,25 +2,50 @@ import { db } from './firestore.js'
 import type { SyncResult, VideoDoc } from '../types.js'
 
 const YOUTUBE_API_BASE = 'https://www.googleapis.com/youtube/v3'
+// YouTube's videos.list endpoint accepts at most 50 IDs per request.
+const MAX_VIDEO_IDS_PER_REQUEST = 50
 
 interface YoutubeThumbnails {
   medium?: { url: string }
   default?: { url: string }
 }
 
+interface YoutubeErrorBody {
+  error?: { message?: string }
+}
+
+async function youtubeFetch<T>(url: string): Promise<T & YoutubeErrorBody> {
+  const res = await fetch(url)
+  const data = (await res.json()) as T & YoutubeErrorBody
+  if (!res.ok || data.error) {
+    const message = data.error?.message ?? res.statusText
+    throw new Error(`YouTube API request failed (${res.status}): ${message}`)
+  }
+  return data
+}
+
 async function getUploadsPlaylistId(apiKey: string, channelId: string): Promise<string | null> {
-  const res = await fetch(`${YOUTUBE_API_BASE}/channels?part=contentDetails&id=${channelId}&key=${apiKey}`)
-  const data = await res.json()
+  const data = await youtubeFetch<{ items?: { contentDetails?: { relatedPlaylists?: { uploads?: string } } }[] }>(
+    `${YOUTUBE_API_BASE}/channels?part=contentDetails&id=${channelId}&key=${apiKey}`,
+  )
   return data.items?.[0]?.contentDetails?.relatedPlaylists?.uploads ?? null
 }
 
 async function getUploadedVideoIds(apiKey: string, playlistId: string): Promise<string[]> {
-  const res = await fetch(
-    `${YOUTUBE_API_BASE}/playlistItems?part=contentDetails&playlistId=${playlistId}&maxResults=50&key=${apiKey}`,
-  )
-  const data = await res.json()
-  if (data.error) return []
-  return (data.items ?? []).map((item: { contentDetails: { videoId: string } }) => item.contentDetails.videoId)
+  const videoIds: string[] = []
+  let pageToken: string | undefined
+
+  do {
+    const pageParam = pageToken ? `&pageToken=${pageToken}` : ''
+    const data = await youtubeFetch<{
+      items?: { contentDetails: { videoId: string } }[]
+      nextPageToken?: string
+    }>(`${YOUTUBE_API_BASE}/playlistItems?part=contentDetails&playlistId=${playlistId}&maxResults=50${pageParam}&key=${apiKey}`)
+    videoIds.push(...(data.items ?? []).map((item) => item.contentDetails.videoId))
+    pageToken = data.nextPageToken
+  } while (pageToken)
+
+  return videoIds
 }
 
 interface YoutubeVideoDetails {
@@ -31,9 +56,20 @@ interface YoutubeVideoDetails {
 
 async function getVideoDetails(apiKey: string, videoIds: string[]): Promise<YoutubeVideoDetails[]> {
   if (videoIds.length === 0) return []
-  const res = await fetch(`${YOUTUBE_API_BASE}/videos?part=snippet,status&id=${videoIds.join(',')}&key=${apiKey}`)
-  const data = await res.json()
-  return data.items ?? []
+
+  const batches: string[][] = []
+  for (let i = 0; i < videoIds.length; i += MAX_VIDEO_IDS_PER_REQUEST) {
+    batches.push(videoIds.slice(i, i + MAX_VIDEO_IDS_PER_REQUEST))
+  }
+
+  const results = await Promise.all(
+    batches.map((batch) =>
+      youtubeFetch<{ items?: YoutubeVideoDetails[] }>(
+        `${YOUTUBE_API_BASE}/videos?part=snippet,status&id=${batch.join(',')}&key=${apiKey}`,
+      ),
+    ),
+  )
+  return results.flatMap((data) => data.items ?? [])
 }
 
 export async function syncYoutubeVideos(): Promise<SyncResult> {

@@ -11,27 +11,49 @@ import type {
   VideoDoc,
 } from '../types.js'
 
+// Firestore's `in` operator accepts at most 30 values per query, so lookups
+// keyed off an arbitrary-length list of IDs need to be split into batches.
+const FIRESTORE_IN_QUERY_LIMIT = 30
+
+function chunk<T>(items: T[], size: number): T[][] {
+  const chunks: T[][] = []
+  for (let i = 0; i < items.length; i += size) {
+    chunks.push(items.slice(i, i + size))
+  }
+  return chunks
+}
+
 export async function createLesson(input: {
   unitId: string
   videoId: string
   order: number
   summary: string
 }): Promise<{ lessonId: string; video: { title: string; description: string } }> {
-  const [unitSnap, videoSnap] = await Promise.all([
-    db.collection('units').doc(input.unitId).get(),
-    db.collection('videos').doc(input.videoId).get(),
-  ])
-  if (!unitSnap.exists) throw new Error('Unit not found')
-  if (!videoSnap.exists) throw new Error('Video not found')
-  const video = videoSnap.data() as VideoDoc
+  const unitRef = db.collection('units').doc(input.unitId)
+  const videoRef = db.collection('videos').doc(input.videoId)
+  const lessonRef = db.collection('lessons').doc()
 
-  const ref = await db.collection('lessons').add({
-    unitId: input.unitId,
-    videoId: input.videoId,
-    order: input.order,
-    summary: input.summary,
-  } satisfies LessonDoc)
-  return { lessonId: ref.id, video: { title: video.title, description: video.description } }
+  // Reading the video/unit, creating the lesson, and claiming the video all
+  // happen in one transaction so a lesson can never be created against a
+  // video that's already assigned (or left half-claimed by a crash).
+  const video = await db.runTransaction(async (tx) => {
+    const [unitSnap, videoSnap] = await Promise.all([tx.get(unitRef), tx.get(videoRef)])
+    if (!unitSnap.exists) throw new Error('Unit not found')
+    if (!videoSnap.exists) throw new Error('Video not found')
+    const videoData = videoSnap.data() as VideoDoc
+    if (videoData.status === 'assigned') throw new Error('Video is already assigned to a lesson')
+
+    tx.set(lessonRef, {
+      unitId: input.unitId,
+      videoId: input.videoId,
+      order: input.order,
+      summary: input.summary,
+    } satisfies LessonDoc)
+    tx.update(videoRef, { status: 'assigned' })
+    return videoData
+  })
+
+  return { lessonId: lessonRef.id, video: { title: video.title, description: video.description } }
 }
 
 export async function listCourses(): Promise<CourseSummary[]> {
@@ -80,13 +102,17 @@ export async function getCourseDetail(courseId: string): Promise<CourseDetail | 
 
   const lessonsByUnit = new Map<string, { id: string; videoId: string; order: number; summary: string }[]>()
   if (unitIds.length > 0) {
-    const lessonsSnap = await db.collection('lessons').where('unitId', 'in', unitIds).get()
-    lessonsSnap.forEach((doc) => {
-      const data = doc.data() as LessonDoc
-      const list = lessonsByUnit.get(data.unitId) ?? []
-      list.push({ id: doc.id, videoId: data.videoId, order: data.order, summary: data.summary })
-      lessonsByUnit.set(data.unitId, list)
-    })
+    const lessonsSnaps = await Promise.all(
+      chunk(unitIds, FIRESTORE_IN_QUERY_LIMIT).map((batch) => db.collection('lessons').where('unitId', 'in', batch).get()),
+    )
+    lessonsSnaps.forEach((snap) =>
+      snap.forEach((doc) => {
+        const data = doc.data() as LessonDoc
+        const list = lessonsByUnit.get(data.unitId) ?? []
+        list.push({ id: doc.id, videoId: data.videoId, order: data.order, summary: data.summary })
+        lessonsByUnit.set(data.unitId, list)
+      }),
+    )
   }
 
   // Lesson titles are never stored on the lesson — they always mirror the
@@ -94,8 +120,12 @@ export async function getCourseDetail(courseId: string): Promise<CourseDetail | 
   const videoIds = [...new Set([...lessonsByUnit.values()].flat().map((lesson) => lesson.videoId))]
   const titleByVideoId = new Map<string, string>()
   if (videoIds.length > 0) {
-    const videosSnap = await db.collection('videos').where(FieldPath.documentId(), 'in', videoIds).get()
-    videosSnap.forEach((doc) => titleByVideoId.set(doc.id, (doc.data() as VideoDoc).title))
+    const videosSnaps = await Promise.all(
+      chunk(videoIds, FIRESTORE_IN_QUERY_LIMIT).map((batch) =>
+        db.collection('videos').where(FieldPath.documentId(), 'in', batch).get(),
+      ),
+    )
+    videosSnaps.forEach((snap) => snap.forEach((doc) => titleByVideoId.set(doc.id, (doc.data() as VideoDoc).title)))
   }
 
   const units: UnitWithLessons[] = unitsSnap.docs.map((doc) => {

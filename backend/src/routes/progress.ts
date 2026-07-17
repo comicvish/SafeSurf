@@ -18,7 +18,11 @@ progressRouter.put(
   '/progress/:lessonId',
   verifyFirebaseToken,
   asyncHandler(async (req, res) => {
-    const completed = Boolean((req.body as { completed?: unknown } | undefined)?.completed)
+    const completed = (req.body as { completed?: unknown } | undefined)?.completed
+    if (typeof completed !== 'boolean') {
+      res.status(400).json({ error: 'completed must be a boolean' })
+      return
+    }
     await setLessonComplete(res.locals.uid, req.params.lessonId, completed)
     res.json({ ok: true })
   }),

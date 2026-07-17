@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { getPracticeSession, submitPractice } from '../lib/api'
-import type { PracticeSession, PracticeSubmitResult } from '../lib/types'
+import { getPracticeSession, getQuestionAnswer, submitPractice } from '../lib/api'
+import type { PracticeAnswerReveal, PracticeSession, PracticeSubmitResult } from '../lib/types'
 import { useStats } from '../lib/statsContext'
 
 function encouragement(score: number, total: number): string {
@@ -19,6 +19,8 @@ export default function Practice() {
   const [session, setSession] = useState<PracticeSession | null | undefined>(undefined)
   const [currentIndex, setCurrentIndex] = useState(0)
   const [answers, setAnswers] = useState<number[]>([])
+  const [reveals, setReveals] = useState<Record<string, PracticeAnswerReveal>>({})
+  const [revealError, setRevealError] = useState<string | null>(null)
   const [result, setResult] = useState<PracticeSubmitResult | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
@@ -107,14 +109,19 @@ export default function Practice() {
   const selected = answers[currentIndex]
   const hasAnswered = selected !== undefined
   const isLastQuestion = currentIndex === total - 1
+  const reveal = reveals[question.id]
 
   const handleSelect = (optionIndex: number) => {
-    if (hasAnswered) return
+    if (hasAnswered || !lessonId) return
     setAnswers((prev) => {
       const next = [...prev]
       next[currentIndex] = optionIndex
       return next
     })
+    setRevealError(null)
+    getQuestionAnswer(lessonId, question.id)
+      .then((answer) => setReveals((prev) => ({ ...prev, [question.id]: answer })))
+      .catch(() => setRevealError('Could not load the explanation for this question, but you can still continue.'))
   }
 
   const handleContinue = () => {
@@ -140,9 +147,13 @@ export default function Practice() {
         {question.options.map((option, index) => {
           let state = ''
           if (hasAnswered) {
-            if (index === question.correctIndex) state = 'correct'
-            else if (index === selected) state = 'incorrect'
-            else state = 'dimmed'
+            if (reveal) {
+              if (index === reveal.correctIndex) state = 'correct'
+              else if (index === selected) state = 'incorrect'
+              else state = 'dimmed'
+            } else if (index === selected) {
+              state = 'selected'
+            }
           }
           return (
             <button
@@ -159,9 +170,19 @@ export default function Practice() {
 
       {hasAnswered && (
         <div className="practice-feedback">
-          <p>{question.explanation}</p>
+          {reveal ? (
+            <p>{reveal.explanation}</p>
+          ) : revealError ? (
+            <p className="auth-error">{revealError}</p>
+          ) : (
+            <p>Checking your answer…</p>
+          )}
           {submitError && <p className="auth-error">{submitError}</p>}
-          <button className="button button-primary" onClick={handleContinue} disabled={submitting}>
+          <button
+            className="button button-primary"
+            onClick={handleContinue}
+            disabled={submitting || (!reveal && !revealError)}
+          >
             {submitting ? 'Submitting…' : isLastQuestion ? 'See results' : 'Next question'}
           </button>
         </div>

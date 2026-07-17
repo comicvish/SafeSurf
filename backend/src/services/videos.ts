@@ -15,7 +15,3 @@ export async function listUnassignedVideos(): Promise<UnassignedVideo[]> {
     }
   })
 }
-
-export async function markVideoAssigned(videoId: string): Promise<void> {
-  await db.collection('videos').doc(videoId).update({ status: 'assigned' })
-}

@@ -18,6 +18,10 @@ const CANONICAL_HOST = 'verablock.org'
 
 const app = express()
 
+// Cloud Run sits behind a load balancer — without this, req.ip is always the
+// LB's internal address, breaking IP-based rate limiting.
+app.set('trust proxy', true)
+
 app.use((req, res, next) => {
   if (req.hostname === `www.${CANONICAL_HOST}`) {
     res.redirect(301, `https://${CANONICAL_HOST}${req.originalUrl}`)
@@ -37,6 +41,10 @@ app.use('/api', adminRouter)
 app.use('/api', practiceRouter)
 app.use('/api', statsRouter)
 app.use('/api', inquiriesRouter)
+
+app.use('/api', (_req, res) => {
+  res.status(404).json({ error: 'Not found' })
+})
 
 app.use(express.static(frontendDist))
 

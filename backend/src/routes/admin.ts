@@ -4,7 +4,7 @@ import { requireAdmin, isAdminEmail } from '../middleware/requireAdmin.js'
 import { verifySchedulerOrAdmin } from '../middleware/verifySchedulerOrAdmin.js'
 import { asyncHandler } from '../middleware/asyncHandler.js'
 import { syncYoutubeVideos } from '../services/youtube.js'
-import { listUnassignedVideos, markVideoAssigned } from '../services/videos.js'
+import { listUnassignedVideos } from '../services/videos.js'
 import { createLesson } from '../services/content.js'
 import { generatePracticeSession } from '../services/practice.js'
 
@@ -42,8 +42,17 @@ adminRouter.post(
   verifyFirebaseToken,
   requireAdmin,
   asyncHandler(async (req, res) => {
-    const body = req.body as { unitId?: string; videoId?: string; order?: number; summary?: string }
-    if (!body.unitId || !body.videoId || typeof body.order !== 'number' || !body.summary) {
+    const body = req.body as { unitId?: unknown; videoId?: unknown; order?: unknown; summary?: unknown }
+    if (
+      typeof body.unitId !== 'string' ||
+      body.unitId.trim() === '' ||
+      typeof body.videoId !== 'string' ||
+      body.videoId.trim() === '' ||
+      typeof body.order !== 'number' ||
+      !Number.isFinite(body.order) ||
+      typeof body.summary !== 'string' ||
+      body.summary.trim() === ''
+    ) {
       res.status(400).json({ error: 'unitId, videoId, order, and summary are required' })
       return
     }
@@ -53,7 +62,6 @@ adminRouter.post(
       order: body.order,
       summary: body.summary,
     })
-    await markVideoAssigned(body.videoId)
 
     let practiceGenerated = true
     try {

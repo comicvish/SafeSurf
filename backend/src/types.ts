@@ -96,9 +96,23 @@ export interface PracticeSessionDoc {
   model: string
 }
 
+// Public-facing question shape — deliberately omits correctIndex/explanation
+// so the answer key isn't visible in the network response before a learner
+// answers. See PracticeAnswerReveal for the per-question answer endpoint.
+export interface PracticeQuestion {
+  id: string
+  prompt: string
+  options: string[]
+}
+
 export interface PracticeSession {
   lessonId: string
-  questions: PracticeQuestionDoc[]
+  questions: PracticeQuestion[]
+}
+
+export interface PracticeAnswerReveal {
+  correctIndex: number
+  explanation: string
 }
 
 export interface UserStatsDoc {

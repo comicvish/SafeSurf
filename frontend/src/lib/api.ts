@@ -2,6 +2,7 @@ import type {
   CourseDetail,
   CourseSummary,
   LessonDetail,
+  PracticeAnswerReveal,
   PracticeSession,
   PracticeSubmitResult,
   SyncResult,
@@ -84,6 +85,14 @@ export async function getPracticeSession(lessonId: string): Promise<PracticeSess
   if (!res.ok) throw new Error(`Request to /api/lessons/${lessonId}/practice failed with ${res.status}`)
   const data = (await res.json()) as { practice: PracticeSession }
   return data.practice
+}
+
+export async function getQuestionAnswer(lessonId: string, questionId: string): Promise<PracticeAnswerReveal> {
+  const data = await getJson<{ answer: PracticeAnswerReveal }>(
+    `/api/lessons/${lessonId}/practice/questions/${questionId}/answer`,
+    { headers: await authHeaders() },
+  )
+  return data.answer
 }
 
 export async function submitPractice(lessonId: string, answers: number[]): Promise<PracticeSubmitResult> {

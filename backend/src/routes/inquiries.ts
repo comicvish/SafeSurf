@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import rateLimit from 'express-rate-limit'
 import { asyncHandler } from '../middleware/asyncHandler.js'
 import { sendInquiryEmail } from '../services/email.js'
 
@@ -6,8 +7,19 @@ export const inquiriesRouter = Router()
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
+// A handful of real inquiries a day is the expected volume — this just
+// blocks scripted spam/abuse of the public email-sending endpoint.
+const inquiryRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many requests. Please try again later.' },
+})
+
 inquiriesRouter.post(
   '/inquiries',
+  inquiryRateLimit,
   asyncHandler(async (req, res) => {
     const body = req.body as { name?: unknown; email?: unknown; preferredDate?: unknown; message?: unknown }
 

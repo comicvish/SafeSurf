@@ -51,13 +51,16 @@ export interface PracticeQuestion {
   id: string
   prompt: string
   options: string[]
-  correctIndex: number
-  explanation: string
 }
 
 export interface PracticeSession {
   lessonId: string
   questions: PracticeQuestion[]
+}
+
+export interface PracticeAnswerReveal {
+  correctIndex: number
+  explanation: string
 }
 
 export interface UserStats {

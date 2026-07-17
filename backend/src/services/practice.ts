@@ -1,7 +1,13 @@
 import { getClaudeClient } from './claude.js'
 import { db } from './firestore.js'
 import { recordPracticeCompletion } from './stats.js'
-import type { PracticeQuestionDoc, PracticeSession, PracticeSessionDoc, PracticeSubmitResult } from '../types.js'
+import type {
+  PracticeAnswerReveal,
+  PracticeQuestionDoc,
+  PracticeSession,
+  PracticeSessionDoc,
+  PracticeSubmitResult,
+} from '../types.js'
 
 const MODEL = 'claude-opus-4-8'
 const QUESTIONS_PER_PRACTICE_SESSION = 5
@@ -44,6 +50,7 @@ function isValidQuestion(q: RawPracticeQuestion): q is ValidPracticeQuestion {
 }
 
 export class PracticeSessionNotFoundError extends Error {}
+export class InvalidPracticeAnswersError extends Error {}
 
 export async function generatePracticeSession(lessonId: string, input: GeneratePracticeInput): Promise<void> {
   const truncatedDescription = input.videoDescription.slice(0, MAX_DESCRIPTION_LENGTH)
@@ -118,16 +125,39 @@ export async function generatePracticeSession(lessonId: string, input: GenerateP
     } satisfies PracticeSessionDoc)
 }
 
-export async function getPracticeSession(lessonId: string): Promise<PracticeSession | null> {
+async function getPracticeSessionDoc(lessonId: string): Promise<PracticeSessionDoc | null> {
   const snap = await db.collection('practiceSessions').doc(lessonId).get()
   if (!snap.exists) return null
-  const data = snap.data() as PracticeSessionDoc
-  return { lessonId, questions: data.questions }
+  return snap.data() as PracticeSessionDoc
+}
+
+export async function getPracticeSession(lessonId: string): Promise<PracticeSession | null> {
+  const doc = await getPracticeSessionDoc(lessonId)
+  if (!doc) return null
+  const questions = doc.questions.map(({ id, prompt, options }) => ({ id, prompt, options }))
+  return { lessonId, questions }
+}
+
+export async function getQuestionAnswer(lessonId: string, questionId: string): Promise<PracticeAnswerReveal | null> {
+  const doc = await getPracticeSessionDoc(lessonId)
+  const question = doc?.questions.find((q) => q.id === questionId)
+  if (!question) return null
+  return { correctIndex: question.correctIndex, explanation: question.explanation }
 }
 
 export async function submitPracticeAnswers(uid: string, lessonId: string, answers: number[]): Promise<PracticeSubmitResult> {
-  const session = await getPracticeSession(lessonId)
+  const session = await getPracticeSessionDoc(lessonId)
   if (!session) throw new PracticeSessionNotFoundError(`No practice session for lesson ${lessonId}`)
+
+  const isValidAnswers =
+    answers.length === session.questions.length &&
+    answers.every((answer, index) => {
+      const optionCount = session.questions[index].options.length
+      return Number.isInteger(answer) && answer >= 0 && answer < optionCount
+    })
+  if (!isValidAnswers) {
+    throw new InvalidPracticeAnswersError('answers must include exactly one valid option index per question')
+  }
 
   const correctCount = session.questions.reduce(
     (count, question, index) => count + (answers[index] === question.correctIndex ? 1 : 0),

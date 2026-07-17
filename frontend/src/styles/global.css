@@ -723,6 +723,11 @@ footer small {
   opacity: 0.55;
 }
 
+.practice-option.selected {
+  border-color: var(--blue);
+  background: var(--cream);
+}
+
 .practice-feedback {
   padding: 18px 20px;
   border-radius: 8px;

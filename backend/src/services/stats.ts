@@ -30,30 +30,38 @@ export async function recordPracticeCompletion(
   totalQuestions: number,
 ): Promise<PracticeSubmitResult> {
   const userRef = db.collection('users').doc(uid)
-  const snap = await userRef.get()
-  const existing: UserStatsDoc = snap.exists ? (snap.data() as UserStatsDoc) : { ...DEFAULT_STATS, lastPracticeDate: null }
+  const resultRef = userRef.collection('practiceResults').doc(lessonId)
 
-  const xpEarned = correctCount * XP_PER_CORRECT_ANSWER + (correctCount === totalQuestions ? PERFECT_SCORE_BONUS_XP : 0)
-  const today = todayUtc()
+  return db.runTransaction(async (tx) => {
+    const [userSnap, resultSnap] = await Promise.all([tx.get(userRef), tx.get(resultRef)])
+    const existing: UserStatsDoc = userSnap.exists
+      ? (userSnap.data() as UserStatsDoc)
+      : { ...DEFAULT_STATS, lastPracticeDate: null }
 
-  let currentStreak = existing.currentStreak
-  if (existing.lastPracticeDate === today) {
-    // already practiced today — streak unchanged
-  } else if (existing.lastPracticeDate && isConsecutiveDay(existing.lastPracticeDate, today)) {
-    currentStreak += 1
-  } else {
-    currentStreak = 1
-  }
-  const longestStreak = Math.max(existing.longestStreak, currentStreak)
-  const xp = existing.xp + xpEarned
+    // XP is only awarded the first time a lesson's quiz is completed —
+    // otherwise "Try again" would let someone farm unlimited XP by
+    // resubmitting the same quiz over and over.
+    const isFirstCompletion = !resultSnap.exists
+    const xpEarned = isFirstCompletion
+      ? correctCount * XP_PER_CORRECT_ANSWER + (correctCount === totalQuestions ? PERFECT_SCORE_BONUS_XP : 0)
+      : 0
 
-  const updated: UserStatsDoc = { xp, currentStreak, longestStreak, lastPracticeDate: today }
-  await userRef.set(updated, { merge: true })
+    const today = todayUtc()
+    let currentStreak = existing.currentStreak
+    if (existing.lastPracticeDate === today) {
+      // already practiced today — streak unchanged
+    } else if (existing.lastPracticeDate && isConsecutiveDay(existing.lastPracticeDate, today)) {
+      currentStreak += 1
+    } else {
+      currentStreak = 1
+    }
+    const longestStreak = Math.max(existing.longestStreak, currentStreak)
+    const xp = existing.xp + xpEarned
 
-  await userRef
-    .collection('practiceResults')
-    .doc(lessonId)
-    .set({
+    const updated: UserStatsDoc = { xp, currentStreak, longestStreak, lastPracticeDate: today }
+    tx.set(userRef, updated, { merge: true })
+
+    tx.set(resultRef, {
       lessonId,
       score: correctCount,
       totalQuestions,
@@ -61,10 +69,11 @@ export async function recordPracticeCompletion(
       completedAt: new Date().toISOString(),
     } satisfies PracticeResultDoc)
 
-  return {
-    score: correctCount,
-    totalQuestions,
-    xpEarned,
-    stats: { xp, currentStreak, longestStreak },
-  }
+    return {
+      score: correctCount,
+      totalQuestions,
+      xpEarned,
+      stats: { xp, currentStreak, longestStreak },
+    }
+  })
 }
