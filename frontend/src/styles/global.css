@@ -10,11 +10,34 @@ html {
 
 body {
   margin: 0;
-  background: var(--paper);
+  background-color: var(--paper);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
   color: var(--ink);
   font-family: 'DM Sans', Arial, sans-serif;
   font-size: 16px;
   line-height: 1.5;
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 button,
@@ -118,7 +141,7 @@ a {
   justify-content: center;
   gap: 9px;
   text-decoration: none;
-  transition: 0.2s transform;
+  transition: transform var(--duration-fast) var(--ease-out);
 }
 
 .header-cta {
@@ -131,6 +154,11 @@ a {
 .header-cta:hover,
 .button:hover {
   transform: translateY(-2px);
+}
+
+.header-cta:active,
+.button:active {
+  transform: scale(0.97);
 }
 
 .button {
@@ -153,6 +181,7 @@ a {
 .hero {
   max-width: 860px;
   text-align: center;
+  animation: fade-in-up 0.5s var(--ease-out) both;
 }
 
 .hero-paths {
@@ -170,6 +199,12 @@ a {
   gap: 12px;
   padding: 28px 30px;
   border-radius: 10px;
+  transition: transform var(--duration-base) var(--ease-out), box-shadow var(--duration-base) var(--ease-out);
+}
+
+.hero-path-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 32px -18px rgba(10, 31, 51, 0.35);
 }
 
 .hero-path-card h2 {
@@ -346,6 +381,12 @@ footer small {
   background: #dbe8f6;
   text-decoration: none;
   color: var(--ink);
+  transition: transform var(--duration-base) var(--ease-out), box-shadow var(--duration-base) var(--ease-out);
+}
+
+.course-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 24px -14px rgba(15, 44, 82, 0.3);
 }
 
 .course-card h2 {
@@ -397,6 +438,14 @@ footer small {
   border-radius: 6px;
   text-decoration: none;
   background: #fff;
+  transition: transform var(--duration-base) var(--ease-out), border-color var(--duration-base) var(--ease-out),
+    box-shadow var(--duration-base) var(--ease-out);
+}
+
+.lesson-list a:hover {
+  transform: translateX(3px);
+  border-color: var(--blue);
+  box-shadow: 0 8px 18px -12px rgba(15, 44, 82, 0.25);
 }
 
 .lesson-list a span {

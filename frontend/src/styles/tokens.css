@@ -12,4 +12,8 @@
   --success-tint: #e3f3e6;
   --danger: #b3261e;
   --danger-tint: #fbe4e2;
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-fast: 150ms;
+  --duration-base: 220ms;
 }
