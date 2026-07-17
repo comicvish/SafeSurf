@@ -37,7 +37,7 @@ export default function Dashboard() {
           <span>Total XP</span>
         </div>
         <div className="stat-tile">
-          <strong>🔥 {stats.currentStreak}</strong>
+          <strong>{stats.currentStreak}</strong>
           <span>Day streak</span>
         </div>
         <div className="stat-tile">

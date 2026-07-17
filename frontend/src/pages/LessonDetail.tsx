@@ -10,6 +10,7 @@ export default function LessonDetail() {
   const { lessonId } = useParams<{ lessonId: string }>()
   const [lesson, setLesson] = useState<LessonDetailData | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [progressError, setProgressError] = useState<string | null>(null)
   const [practice, setPractice] = useState<PracticeSession | null>(null)
   const { user } = useAuth()
   const { isComplete, toggleComplete } = useProgress()
@@ -42,12 +43,22 @@ export default function LessonDetail() {
       <p className="lesson-summary">{lesson.summary}</p>
 
       {user ? (
-        <button
-          className={complete ? 'button button-complete' : 'button button-primary'}
-          onClick={() => void toggleComplete(lesson.id)}
-        >
-          {complete ? '✓ Completed' : 'Mark as complete'}
-        </button>
+        <>
+          <button
+            className={complete ? 'button button-complete' : 'button button-primary'}
+            onClick={() => {
+              setProgressError(null)
+              toggleComplete(lesson.id)
+                .then((ok) => {
+                  if (!ok) setProgressError("Couldn't save that — please try again.")
+                })
+                .catch(() => setProgressError("Couldn't save that — please try again."))
+            }}
+          >
+            {complete ? '✓ Completed' : 'Mark as complete'}
+          </button>
+          {progressError && <p className="auth-error">{progressError}</p>}
+        </>
       ) : (
         <p className="lesson-signin-prompt">
           <Link to="/login">Sign in</Link> to track your progress on this lesson.
@@ -58,7 +69,7 @@ export default function LessonDetail() {
         (user ? (
           <div className="practice-card">
             <div>
-              <strong>🎮 Practice this lesson</strong>
+              <strong>Practice this lesson</strong>
               <p>{practice.questions.length} questions · earn XP and build your streak</p>
             </div>
             <Link className="button button-primary" to={`/lessons/${lesson.id}/practice`}>

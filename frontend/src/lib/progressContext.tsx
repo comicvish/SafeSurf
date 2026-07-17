@@ -5,7 +5,7 @@ import { getProgress, setLessonComplete as setLessonCompleteRequest } from './ap
 interface ProgressContextValue {
   completedLessonIds: Set<string>
   isComplete: (lessonId: string) => boolean
-  toggleComplete: (lessonId: string) => Promise<void>
+  toggleComplete: (lessonId: string) => Promise<boolean>
 }
 
 const ProgressContext = createContext<ProgressContextValue | null>(null)
@@ -24,8 +24,8 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       .catch(() => setCompletedLessonIds(new Set()))
   }, [user])
 
-  const toggleComplete = async (lessonId: string) => {
-    if (!user) return
+  const toggleComplete = async (lessonId: string): Promise<boolean> => {
+    if (!user) return false
     const nextCompleted = !completedLessonIds.has(lessonId)
     setCompletedLessonIds((prev) => {
       const next = new Set(prev)
@@ -33,7 +33,20 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       else next.delete(lessonId)
       return next
     })
-    await setLessonCompleteRequest(lessonId, nextCompleted)
+    try {
+      await setLessonCompleteRequest(lessonId, nextCompleted)
+      return true
+    } catch {
+      // Request failed — roll back the optimistic update so the UI doesn't
+      // claim a state the server never actually saved.
+      setCompletedLessonIds((prev) => {
+        const next = new Set(prev)
+        if (nextCompleted) next.delete(lessonId)
+        else next.add(lessonId)
+        return next
+      })
+      return false
+    }
   }
 
   return (

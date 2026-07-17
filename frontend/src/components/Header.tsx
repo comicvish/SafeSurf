@@ -30,7 +30,7 @@ export default function Header() {
       <nav id="main-navigation" aria-label="Main navigation" className={menuOpen ? 'open' : undefined}>
         {user && (
           <span className="header-stats" aria-label={`${stats.currentStreak} day streak, ${stats.xp} XP`}>
-            🔥 {stats.currentStreak} · {stats.xp} XP
+            {stats.currentStreak}-day streak · {stats.xp} XP
           </span>
         )}
         <Link to="/courses" onClick={() => setMenuOpen(false)}>

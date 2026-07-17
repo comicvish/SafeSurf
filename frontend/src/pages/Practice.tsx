@@ -6,7 +6,7 @@ import { useStats } from '../lib/statsContext'
 
 function encouragement(score: number, total: number): string {
   const ratio = score / total
-  if (ratio === 1) return 'Perfect score! 🎉'
+  if (ratio === 1) return 'Perfect score!'
   if (ratio >= 0.8) return 'Excellent work!'
   if (ratio >= 0.5) return 'Nice work — keep going!'
   return 'Keep practicing — you’ll get it!'
@@ -84,7 +84,7 @@ export default function Practice() {
               <span>XP earned</span>
             </div>
             <div className="practice-stat">
-              <strong>🔥 {result.stats.currentStreak}</strong>
+              <strong>{result.stats.currentStreak}</strong>
               <span>day streak</span>
             </div>
             <div className="practice-stat">
