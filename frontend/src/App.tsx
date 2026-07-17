@@ -14,6 +14,9 @@ import Dashboard from './pages/Dashboard'
 import ProtectedRoute from './components/ProtectedRoute'
 import AdminRoute from './components/AdminRoute'
 import Admin from './pages/Admin'
+import PrivacyPolicy from './pages/PrivacyPolicy'
+import TermsOfService from './pages/TermsOfService'
+import AccessibilityStatement from './pages/AccessibilityStatement'
 import NotFound from './pages/NotFound'
 
 export default function App() {
@@ -53,6 +56,9 @@ export default function App() {
             </AdminRoute>
           }
         />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/terms" element={<TermsOfService />} />
+        <Route path="/accessibility" element={<AccessibilityStatement />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       <Footer />

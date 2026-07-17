@@ -422,6 +422,71 @@ footer small {
   font-size: 11px;
 }
 
+.footer-legal-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 18px;
+  margin-top: 4px;
+}
+
+.footer-legal-links a {
+  color: #bcccdc;
+  font-size: 13px;
+  text-decoration: none;
+}
+
+.footer-legal-links a:hover {
+  text-decoration: underline;
+}
+
+.legal-page {
+  max-width: 720px;
+}
+
+.legal-page .legal-updated {
+  color: #52697f;
+  font-size: 14px;
+  margin: -4px 0 28px;
+}
+
+.legal-page h2 {
+  font-size: 21px;
+  margin: 34px 0 12px;
+}
+
+.legal-page p,
+.legal-page li {
+  font-size: 16px;
+  line-height: 1.6;
+  margin: 0 0 14px;
+}
+
+.legal-page ul {
+  padding-left: 22px;
+  margin: 0 0 14px;
+}
+
+.legal-todo {
+  color: #52697f;
+  font-style: italic;
+}
+
+.legal-draft-notice {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 18px 20px;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #fff6e6 0%, #ffedcc 100%);
+  border: 1px solid rgba(230, 160, 60, 0.4);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset;
+  margin-bottom: 32px;
+  font-size: 15px;
+  color: #6b4a1a;
+  animation: content-fade-in var(--duration-base) var(--ease-out) both;
+}
+
 .section-shell {
   padding: 60px max(5vw, 28px) 80px;
   max-width: 960px;
