@@ -17,16 +17,38 @@ export default function Home() {
       <section className="hero-shell">
         <div className="hero">
           <p className="eyebrow">
-            <span></span> Free, video-based lessons
+            <span></span> Free internet safety education
           </p>
           <h1>Learn to stay safe online.</h1>
           <p className="hero-text">
-            VeraBlock teaches practical internet-security skills through short video lessons, organized into
-            courses you can work through at your own pace — no account needed to start watching.
+            VeraBlock teaches practical internet-security skills through short video lessons — and brings a live,
+            in-person course to senior living communities and similar spaces.
           </p>
-          <Link className="button button-primary" to="/courses">
-            Browse courses
-          </Link>
+          <div className="hero-paths">
+            <div className="hero-path-card hero-path-card--light">
+              <h2>Free video courses</h2>
+              <p>
+                Short lessons on real threats — scams, AI-generated content, weak passwords — free to watch any
+                time, no account needed to start.
+              </p>
+              <Link className="button button-primary" to="/courses">
+                Browse courses
+              </Link>
+            </div>
+            <div className="hero-path-card hero-path-card--dark">
+              <p className="eyebrow">
+                <span></span> For senior living communities
+              </p>
+              <h2>In-person courses</h2>
+              <p>
+                Our team leads a live, four-week course on-site — covering spam calls, AI voices, and AI-generated
+                images and video.
+              </p>
+              <Link className="button button-primary" to="/in-person-courses">
+                Learn about the in-person course
+              </Link>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -42,24 +64,6 @@ export default function Home() {
         <div className="value-prop">
           <h3>Go at your pace</h3>
           <p>Short video lessons in a clear order, with your progress saved as you go.</p>
-        </div>
-      </section>
-
-      <section className="community-teaser section-shell">
-        <div className="community-teaser-card">
-          <div>
-            <p className="eyebrow">
-              <span></span> For senior living communities
-            </p>
-            <h2>Bring this course to your residents in person.</h2>
-            <p>
-              Our team leads a live, four-week course at senior living communities and similar spaces — covering
-              spam calls, AI voices, and AI-generated images and video.
-            </p>
-          </div>
-          <Link className="button button-primary" to="/in-person-courses">
-            Learn about the in-person course
-          </Link>
         </div>
       </section>
 
