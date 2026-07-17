@@ -10,10 +10,19 @@ export default function CourseDetail() {
 
   useEffect(() => {
     if (!courseId) return
+    let active = true
     setCourse(null)
+    setError(null)
     getCourse(courseId)
-      .then((data) => setCourse(data.course))
-      .catch(() => setError('Could not load this course right now.'))
+      .then((data) => {
+        if (active) setCourse(data.course)
+      })
+      .catch(() => {
+        if (active) setError('Could not load this course right now.')
+      })
+    return () => {
+      active = false
+    }
   }, [courseId])
 
   if (error) return <main className="page-status">{error}</main>

@@ -11,12 +11,13 @@ export default function Dashboard() {
   const { completedLessonIds } = useProgress()
   const { stats } = useStats()
   const [courses, setCourses] = useState<CourseDetail[] | null>(null)
+  const [coursesError, setCoursesError] = useState<string | null>(null)
 
   useEffect(() => {
     listCourses()
       .then((data) => Promise.all(data.courses.map((c) => getCourse(c.id).then((r) => r.course))))
       .then(setCourses)
-      .catch(() => setCourses([]))
+      .catch(() => setCoursesError('Could not load your courses right now.'))
   }, [])
 
   const totalLessons = courses?.reduce((sum, c) => sum + c.units.reduce((s, u) => s + u.lessons.length, 0), 0) ?? 0
@@ -27,9 +28,11 @@ export default function Dashboard() {
       <p className="dashboard-user">
         Signed in as {user?.email} · <button className="text-link" onClick={() => void signOutUser()}>Sign out</button>
       </p>
-      <p className="dashboard-summary">
-        {completedLessonIds.size} of {totalLessons} lessons complete
-      </p>
+      {!coursesError && (
+        <p className="dashboard-summary">
+          {completedLessonIds.size} of {totalLessons} lessons complete
+        </p>
+      )}
 
       <div className="stats-row">
         <div className="stat-tile">
@@ -46,7 +49,8 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {!courses && <p>Loading…</p>}
+      {coursesError && <p className="auth-error">{coursesError}</p>}
+      {!courses && !coursesError && <p>Loading…</p>}
 
       {courses?.map((course) => (
         <section key={course.id} className="unit-block">

@@ -17,14 +17,28 @@ export default function LessonDetail() {
 
   useEffect(() => {
     if (!lessonId) return
+    let active = true
     setLesson(null)
     setPractice(null)
+    setError(null)
+    setProgressError(null)
     getLesson(lessonId)
-      .then((data) => setLesson(data.lesson))
-      .catch(() => setError('Could not load this lesson right now.'))
+      .then((data) => {
+        if (active) setLesson(data.lesson)
+      })
+      .catch(() => {
+        if (active) setError('Could not load this lesson right now.')
+      })
     getPracticeSession(lessonId)
-      .then(setPractice)
-      .catch(() => setPractice(null))
+      .then((session) => {
+        if (active) setPractice(session)
+      })
+      .catch(() => {
+        if (active) setPractice(null)
+      })
+    return () => {
+      active = false
+    }
   }, [lessonId])
 
   if (error) return <main className="page-status">{error}</main>

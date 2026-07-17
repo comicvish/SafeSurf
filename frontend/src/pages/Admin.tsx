@@ -108,14 +108,22 @@ function AssignForm({
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    setUnitId('')
     if (!courseId) {
       setUnits([])
-      setUnitId('')
       return
     }
+    let active = true
     getCourse(courseId)
-      .then((data) => setUnits(data.course.units))
-      .catch(() => setUnits([]))
+      .then((data) => {
+        if (active) setUnits(data.course.units)
+      })
+      .catch(() => {
+        if (active) setUnits([])
+      })
+    return () => {
+      active = false
+    }
   }, [courseId])
 
   useEffect(() => {
@@ -126,6 +134,10 @@ function AssignForm({
   const handleSubmit = async () => {
     if (!unitId || !summary) {
       setError('Unit and summary are required.')
+      return
+    }
+    if (!Number.isInteger(order) || order < 1) {
+      setError('Order must be a whole number of 1 or more.')
       return
     }
     setSubmitting(true)

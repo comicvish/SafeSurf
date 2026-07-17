@@ -27,10 +27,24 @@ export default function Practice() {
 
   useEffect(() => {
     if (!lessonId) return
+    let active = true
     setSession(undefined)
+    setCurrentIndex(0)
+    setAnswers([])
+    setReveals({})
+    setRevealError(null)
+    setResult(null)
+    setSubmitError(null)
     getPracticeSession(lessonId)
-      .then(setSession)
-      .catch(() => setSession(null))
+      .then((session) => {
+        if (active) setSession(session)
+      })
+      .catch(() => {
+        if (active) setSession(null)
+      })
+    return () => {
+      active = false
+    }
   }, [lessonId])
 
   if (session === undefined) return <main className="page-status">Loading practice…</main>

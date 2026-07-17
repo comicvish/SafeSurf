@@ -162,7 +162,7 @@ function ContactForm() {
 
   if (status === 'sent') {
     return (
-      <div className="contact-form-success">
+      <div className="contact-form-success" role="status" aria-live="polite">
         <p>Thanks — your message is on its way to us. We'll get back to you soon.</p>
       </div>
     )
@@ -195,7 +195,11 @@ function ContactForm() {
       <button className="button button-primary" type="submit" disabled={status === 'sending'}>
         {status === 'sending' ? 'Sending…' : 'Send inquiry'}
       </button>
-      {status === 'error' && <p className="contact-form-error">{errorMessage}</p>}
+      {status === 'error' && (
+        <p className="contact-form-error" role="alert">
+          {errorMessage}
+        </p>
+      )}
       <p className="contact-form-note">We'll email you back at the address you provide.</p>
     </form>
   )

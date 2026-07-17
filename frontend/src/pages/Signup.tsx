@@ -18,7 +18,7 @@ export default function Signup() {
       await signUp(email, password)
       navigate('/dashboard')
     } catch {
-      setError('Could not create an account with those details. Password must be at least 6 characters.')
+      setError('Could not create an account. Check your details (password must be at least 6 characters) and try again.')
     } finally {
       setSubmitting(false)
     }

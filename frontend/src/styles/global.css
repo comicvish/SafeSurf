@@ -1070,7 +1070,7 @@ footer small {
   font-family: 'DM Mono', monospace;
   font-size: 12px;
   text-transform: uppercase;
-  color: #7f93a6;
+  color: #52697f;
   padding-bottom: 6px;
 }
 
@@ -1217,6 +1217,17 @@ select:focus-visible,
 textarea:focus-visible {
   outline: 2px solid var(--navy);
   outline-offset: 2px;
+}
+
+footer a:focus-visible,
+footer button:focus-visible,
+.community-cta a:focus-visible,
+.community-cta button:focus-visible,
+.community-cta input:focus-visible,
+.community-cta textarea:focus-visible,
+.hero-path-card--dark a:focus-visible,
+.hero-path-card--dark button:focus-visible {
+  outline-color: var(--gold);
 }
 
 @media (max-width: 720px) {
