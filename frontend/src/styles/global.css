@@ -60,6 +60,33 @@ body {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+
+  .hero,
+  .legal-draft-notice,
+  .course-card,
+  .course-detail > h1,
+  .course-detail > .course-description,
+  .unit-block,
+  .video-embed,
+  .lesson-summary,
+  .lesson-detail > .eyebrow,
+  .lesson-detail > h1,
+  .practice-feedback,
+  .lesson-complete-badge,
+  .admin-assign-form,
+  .practice-result {
+    animation-name: reduced-motion-fade !important;
+    animation-duration: 150ms !important;
+  }
+}
+
+@keyframes reduced-motion-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 button,
@@ -187,9 +214,11 @@ a {
   font-size: 14px;
 }
 
-.header-cta:hover,
-.button:hover {
-  transform: translateY(-2px);
+@media (hover: hover) and (pointer: fine) {
+  .header-cta:hover,
+  .button:hover {
+    transform: translateY(-2px);
+  }
 }
 
 .header-cta:active,
@@ -207,7 +236,8 @@ a {
 
 .button {
   padding: 14px 18px;
-  transition: transform var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out);
+  transition: transform var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out), background-color var(--duration-fast) var(--ease-out);
 }
 
 .button-primary {
@@ -253,9 +283,11 @@ a {
   transition: transform var(--duration-base) var(--ease-out), box-shadow var(--duration-base) var(--ease-out);
 }
 
-.hero-path-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.4) inset, 0 16px 32px -18px rgba(10, 31, 51, 0.35);
+@media (hover: hover) and (pointer: fine) {
+  .hero-path-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.4) inset, 0 16px 32px -18px rgba(10, 31, 51, 0.35);
+  }
 }
 
 .hero-path-card h2 {
@@ -313,9 +345,11 @@ a {
   box-shadow: none;
 }
 
-.button-secondary-dark:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.8);
+@media (hover: hover) and (pointer: fine) {
+  .button-secondary-dark:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.8);
+  }
 }
 
 .button-secondary-dark:active {
@@ -329,8 +363,10 @@ a {
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset, 0 4px 10px -6px rgba(15, 44, 82, 0.25);
 }
 
-.button-secondary:hover {
-  border-color: var(--blue);
+@media (hover: hover) and (pointer: fine) {
+  .button-secondary:hover {
+    border-color: var(--blue);
+  }
 }
 
 .button-secondary:active {
@@ -344,8 +380,10 @@ a {
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5) inset, 0 5px 14px -4px rgba(179, 38, 30, 0.35);
 }
 
-.button-danger:hover {
-  background: #f9d0cc;
+@media (hover: hover) and (pointer: fine) {
+  .button-danger:hover {
+    background: #f9d0cc;
+  }
 }
 
 .button-danger:active {
@@ -471,8 +509,10 @@ footer small {
   text-decoration: none;
 }
 
-.footer-legal-links a:hover {
-  text-decoration: underline;
+@media (hover: hover) and (pointer: fine) {
+  .footer-legal-links a:hover {
+    text-decoration: underline;
+  }
 }
 
 .legal-page {
@@ -671,9 +711,11 @@ footer small {
   animation: content-fade-in var(--duration-base) var(--ease-out) both;
 }
 
-.course-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.4) inset, 0 12px 24px -14px rgba(15, 44, 82, 0.3);
+@media (hover: hover) and (pointer: fine) {
+  .course-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.4) inset, 0 12px 24px -14px rgba(15, 44, 82, 0.3);
+  }
 }
 
 .course-grid li:nth-child(2) .course-card {
@@ -779,10 +821,12 @@ footer small {
     box-shadow var(--duration-base) var(--ease-out);
 }
 
-.lesson-list a:hover {
-  transform: translateX(3px);
-  border-color: var(--blue);
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5) inset, 0 10px 22px -12px rgba(15, 44, 82, 0.3);
+@media (hover: hover) and (pointer: fine) {
+  .lesson-list a:hover {
+    transform: translateX(3px);
+    border-color: var(--blue);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5) inset, 0 10px 22px -12px rgba(15, 44, 82, 0.3);
+  }
 }
 
 .lesson-list a span {
@@ -1251,9 +1295,11 @@ footer small {
 
 .practice-progress-bar {
   height: 100%;
+  width: 100%;
   background: var(--gold);
   border-radius: 999px;
-  transition: 0.3s width ease;
+  transform-origin: left;
+  transition: transform 300ms linear;
 }
 
 .practice-question {
@@ -1280,8 +1326,8 @@ footer small {
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.8) inset, 0 2px 6px -4px rgba(15, 44, 82, 0.2);
   font-weight: 600;
   font-size: 16px;
-  transition: 0.15s border-color, 0.15s background, 0.15s box-shadow, 0.15s opacity,
-    transform var(--duration-fast) var(--ease-out);
+  transition: var(--duration-fast) border-color, var(--duration-fast) background, var(--duration-fast) box-shadow,
+    var(--duration-fast) opacity, transform var(--duration-fast) var(--ease-out);
 }
 
 .practice-option-icon {
@@ -1291,10 +1337,12 @@ footer small {
   color: currentColor;
 }
 
-.practice-option:hover:not(:disabled) {
-  border-color: var(--blue);
-  transform: translateY(-1px);
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.8) inset, 0 6px 14px -8px rgba(15, 44, 82, 0.25);
+@media (hover: hover) and (pointer: fine) {
+  .practice-option:hover:not(:disabled) {
+    border-color: var(--blue);
+    transform: translateY(-1px);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.8) inset, 0 6px 14px -8px rgba(15, 44, 82, 0.25);
+  }
 }
 
 .practice-option:disabled {
@@ -1734,11 +1782,35 @@ footer button:focus-visible,
   }
 
   .site-header nav {
-    display: flex;
     position: absolute;
     top: 79px;
     left: 0;
     right: 0;
+    z-index: 10;
+    display: grid;
+    grid-template-rows: 0fr;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(-6px);
+    transition: grid-template-rows var(--duration-base) var(--ease-out), opacity var(--duration-fast) var(--ease-out),
+      transform var(--duration-base) var(--ease-out), visibility 0s var(--duration-base);
+  }
+
+  .site-header nav.open {
+    grid-template-rows: 1fr;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(0);
+    transition: grid-template-rows var(--duration-base) var(--ease-out), opacity var(--duration-fast) var(--ease-out),
+      transform var(--duration-base) var(--ease-out);
+  }
+
+  .site-header nav .nav-inner {
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
     flex-direction: column;
     align-items: flex-start;
     gap: 4px;
@@ -1747,25 +1819,6 @@ footer button:focus-visible,
     -webkit-backdrop-filter: blur(20px) saturate(180%);
     border-bottom: 1px solid var(--line);
     padding: 16px max(5vw, 28px) 24px;
-    z-index: 10;
-    max-height: 0;
-    opacity: 0;
-    overflow: hidden;
-    visibility: hidden;
-    pointer-events: none;
-    transform: translateY(-6px);
-    transition: max-height var(--duration-base) var(--ease-out), opacity var(--duration-fast) var(--ease-out),
-      transform var(--duration-base) var(--ease-out), visibility 0s var(--duration-base);
-  }
-
-  .site-header nav.open {
-    max-height: 480px;
-    opacity: 1;
-    visibility: visible;
-    pointer-events: auto;
-    transform: translateY(0);
-    transition: max-height var(--duration-base) var(--ease-out), opacity var(--duration-fast) var(--ease-out),
-      transform var(--duration-base) var(--ease-out);
   }
 
   .site-header nav a,

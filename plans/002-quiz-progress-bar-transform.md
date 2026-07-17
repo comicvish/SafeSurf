@@ -1,6 +1,6 @@
 # 002 — Animate the quiz progress bar with `transform: scaleX()` instead of `width`
 
-- **Status**: TODO
+- **Status**: DONE
 - **Commit**: 066382c
 - **Severity**: MEDIUM-HIGH
 - **Category**: Performance / Easing

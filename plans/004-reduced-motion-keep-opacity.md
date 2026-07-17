@@ -1,6 +1,6 @@
 # 004 — Give reduced-motion users a gentle opacity fade instead of an instant snap on entrances
 
-- **Status**: TODO
+- **Status**: DONE
 - **Commit**: 066382c
 - **Severity**: MEDIUM
 - **Category**: Accessibility

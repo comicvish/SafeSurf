@@ -1,6 +1,6 @@
 # 006 — Cover `border-color`/`background` in the shared `.button` transition so all variants animate on hover
 
-- **Status**: TODO
+- **Status**: DONE
 - **Commit**: 066382c
 - **Severity**: LOW
 - **Category**: Cohesion & tokens

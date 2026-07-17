@@ -28,34 +28,36 @@ export default function Header() {
         <span />
       </button>
       <nav id="main-navigation" aria-label="Main navigation" className={menuOpen ? 'open' : undefined}>
-        {user && (
-          <span className="header-stats" aria-label={`${stats.currentStreak} day streak, ${stats.xp} XP`}>
-            {stats.currentStreak}-day streak · {stats.xp} XP
-          </span>
-        )}
-        <NavLink to="/courses" onClick={() => setMenuOpen(false)}>
-          Courses
-        </NavLink>
-        <NavLink to="/in-person-courses" onClick={() => setMenuOpen(false)}>
-          In-Person Courses
-        </NavLink>
-        <NavLink to="/dashboard" onClick={() => setMenuOpen(false)}>
-          My progress
-        </NavLink>
-        {isAdmin && (
-          <NavLink to="/admin" onClick={() => setMenuOpen(false)}>
-            Admin
+        <div className="nav-inner">
+          {user && (
+            <span className="header-stats" aria-label={`${stats.currentStreak} day streak, ${stats.xp} XP`}>
+              {stats.currentStreak}-day streak · {stats.xp} XP
+            </span>
+          )}
+          <NavLink to="/courses" onClick={() => setMenuOpen(false)}>
+            Courses
           </NavLink>
-        )}
-        {user ? (
-          <NavLink className="header-cta" to="/account" onClick={() => setMenuOpen(false)}>
-            My Account
+          <NavLink to="/in-person-courses" onClick={() => setMenuOpen(false)}>
+            In-Person Courses
           </NavLink>
-        ) : (
-          <Link className="header-cta" to="/login" onClick={() => setMenuOpen(false)}>
-            Sign in
-          </Link>
-        )}
+          <NavLink to="/dashboard" onClick={() => setMenuOpen(false)}>
+            My progress
+          </NavLink>
+          {isAdmin && (
+            <NavLink to="/admin" onClick={() => setMenuOpen(false)}>
+              Admin
+            </NavLink>
+          )}
+          {user ? (
+            <NavLink className="header-cta" to="/account" onClick={() => setMenuOpen(false)}>
+              My Account
+            </NavLink>
+          ) : (
+            <Link className="header-cta" to="/login" onClick={() => setMenuOpen(false)}>
+              Sign in
+            </Link>
+          )}
+        </div>
       </nav>
     </header>
   )

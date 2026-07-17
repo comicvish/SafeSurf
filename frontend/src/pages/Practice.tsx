@@ -187,7 +187,7 @@ export default function Practice() {
         <span aria-hidden="true"></span>Question {currentIndex + 1} of {total}
       </p>
       <div className="practice-progress">
-        <div className="practice-progress-bar" style={{ width: `${progress}%` }} />
+        <div className="practice-progress-bar" style={{ transform: `scaleX(${progress / 100})` }} />
       </div>
 
       <h1 className="practice-question" ref={questionHeadingRef} tabIndex={-1}>

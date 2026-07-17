@@ -1,6 +1,6 @@
 # 005 — Replace hand-typed `0.15s` with `var(--duration-fast)` in `.practice-option`
 
-- **Status**: TODO
+- **Status**: DONE
 - **Commit**: 066382c
 - **Severity**: LOW
 - **Category**: Cohesion & tokens

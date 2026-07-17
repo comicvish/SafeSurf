@@ -1,6 +1,6 @@
 # 001 — Replace mobile nav's `max-height` animation with a `grid-template-rows` reveal
 
-- **Status**: TODO
+- **Status**: DONE
 - **Commit**: 066382c
 - **Severity**: HIGH
 - **Category**: Performance
