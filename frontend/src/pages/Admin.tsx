@@ -7,31 +7,54 @@ export default function Admin() {
   const [courses, setCourses] = useState<CourseSummary[]>([])
   const [syncing, setSyncing] = useState(false)
   const [syncResult, setSyncResult] = useState<SyncResult | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [assigningVideoId, setAssigningVideoId] = useState<string | null>(null)
+  const [videosError, setVideosError] = useState<string | null>(null)
+  const [coursesError, setCoursesError] = useState<string | null>(null)
+  const [assigningVideoIds, setAssigningVideoIds] = useState<Set<string>>(new Set())
   const [assignNote, setAssignNote] = useState<string | null>(null)
 
-  const refreshVideos = () => listUnassignedVideos().then(setVideos).catch(() => setError('Could not load unassigned videos.'))
+  const refreshVideos = () => {
+    setVideosError(null)
+    return listUnassignedVideos()
+      .then(setVideos)
+      .catch(() => setVideosError('Could not load unassigned videos.'))
+  }
+
+  const refreshCourses = () => {
+    setCoursesError(null)
+    return listCourses()
+      .then((data) => setCourses(data.courses))
+      .catch(() => setCoursesError('Could not load courses.'))
+  }
 
   useEffect(() => {
-    refreshVideos()
-    listCourses()
-      .then((data) => setCourses(data.courses))
-      .catch(() => setError('Could not load courses.'))
+    void refreshVideos()
+    void refreshCourses()
   }, [])
 
   const handleSync = async () => {
     setSyncing(true)
-    setError(null)
+    setVideosError(null)
     try {
       const result = await triggerYoutubeSync()
       setSyncResult(result)
       await refreshVideos()
     } catch {
-      setError('Sync failed.')
+      setVideosError('Sync failed.')
     } finally {
       setSyncing(false)
     }
+  }
+
+  const openAssignForm = (videoId: string) => {
+    setAssigningVideoIds((prev) => new Set(prev).add(videoId))
+  }
+
+  const closeAssignForm = (videoId: string) => {
+    setAssigningVideoIds((prev) => {
+      const next = new Set(prev)
+      next.delete(videoId)
+      return next
+    })
   }
 
   return (
@@ -42,16 +65,35 @@ export default function Admin() {
         {syncing ? 'Syncing…' : 'Sync YouTube channel'}
       </button>
       {syncResult && (
-        <p className="admin-sync-result">
+        <p className="admin-sync-result" role="status" aria-live="polite">
           Found {syncResult.channelVideosFound} video{syncResult.channelVideosFound === 1 ? '' : 's'} on the channel
           &nbsp;({syncResult.newVideos} new, {syncResult.updatedVideos} updated).
         </p>
       )}
-      {error && <p className="auth-error">{error}</p>}
+      {coursesError && (
+        <p className="auth-error" role="alert">
+          {coursesError}{' '}
+          <button className="text-link" onClick={() => void refreshCourses()}>
+            Try again
+          </button>
+        </p>
+      )}
+      {videosError && (
+        <p className="auth-error" role="alert">
+          {videosError}{' '}
+          <button className="text-link" onClick={() => void refreshVideos()}>
+            Try again
+          </button>
+        </p>
+      )}
 
       <h2 className="admin-section-title">Unassigned videos ({videos.length})</h2>
-      {assignNote && <p className="admin-sync-result">{assignNote}</p>}
-      {videos.length === 0 && <p>No unassigned videos right now.</p>}
+      {assignNote && (
+        <p className="admin-sync-result" role="status" aria-live="polite">
+          {assignNote}
+        </p>
+      )}
+      {videos.length === 0 && !videosError && <p>No unassigned videos right now.</p>}
       <div className="admin-video-list">
         {videos.map((video) => (
           <div key={video.id} className="admin-video-card">
@@ -60,12 +102,12 @@ export default function Admin() {
               <strong>{video.title}</strong>
               {!video.embeddable && <span className="admin-warning">Not embeddable</span>}
               {video.privacyStatus !== 'public' && <span className="admin-warning">{video.privacyStatus}</span>}
-              {assigningVideoId === video.id ? (
+              {assigningVideoIds.has(video.id) ? (
                 <AssignForm
                   video={video}
                   courses={courses}
                   onDone={(practiceGenerated) => {
-                    setAssigningVideoId(null)
+                    closeAssignForm(video.id)
                     setAssignNote(
                       practiceGenerated
                         ? 'Lesson created and a practice quiz was generated.'
@@ -73,10 +115,10 @@ export default function Admin() {
                     )
                     void refreshVideos()
                   }}
-                  onCancel={() => setAssigningVideoId(null)}
+                  onCancel={() => closeAssignForm(video.id)}
                 />
               ) : (
-                <button className="button" onClick={() => setAssigningVideoId(video.id)}>
+                <button className="button" onClick={() => openAssignForm(video.id)}>
                   Assign to a lesson
                 </button>
               )}
@@ -184,7 +226,11 @@ function AssignForm({
         Summary
         <textarea value={summary} onChange={(e) => setSummary(e.target.value)} rows={2} />
       </label>
-      {error && <p className="auth-error">{error}</p>}
+      {error && (
+        <p className="auth-error" role="alert">
+          {error}
+        </p>
+      )}
       <div className="admin-assign-actions">
         <button className="button button-primary" onClick={() => void handleSubmit()} disabled={submitting}>
           {submitting ? 'Assigning…' : 'Assign'}

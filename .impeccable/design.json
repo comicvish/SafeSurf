@@ -1,0 +1,129 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-07-17T16:25:35Z",
+  "title": "Design System: VeraBlock",
+  "extensions": {
+    "colorMeta": {
+      "navy": { "role": "primary", "displayName": "Harbor Navy", "tonalRamp": ["#050e1c", "#081a30", "#0c2444", "#0f2c52", "#1c3f6d", "#3a5c8a", "#7d9dc0", "#c7d7e8"] },
+      "gold": { "role": "secondary", "displayName": "Lantern Gold", "tonalRamp": ["#4a2f0a", "#7a4f10", "#a8701a", "#d38f2e", "#e6a03c", "#eeb865", "#f5d09b", "#fbe8cf"] },
+      "blue": { "role": "tertiary", "displayName": "Signal Blue", "tonalRamp": ["#0a2038", "#123350", "#174a72", "#1f6fb2", "#3f8ac7", "#6fa8d6", "#a4c8e6", "#d3e6f3"] },
+      "ink": { "role": "neutral", "displayName": "Ink", "tonalRamp": ["#04090f", "#061019", "#081627", "#0a1f33", "#1c3348", "#3c5064", "#6c7f8f", "#b7c2ca"] },
+      "black": { "role": "neutral", "displayName": "Deep Black" },
+      "paper": { "role": "neutral", "displayName": "Paper" },
+      "cream": { "role": "neutral", "displayName": "Cream" },
+      "sky": { "role": "neutral", "displayName": "Sky" },
+      "line": { "role": "neutral", "displayName": "Line" },
+      "slate-deep": { "role": "neutral", "displayName": "Slate Deep" },
+      "slate-muted": { "role": "neutral", "displayName": "Slate Muted" },
+      "success": { "role": "neutral", "displayName": "Success" },
+      "success-tint": { "role": "neutral", "displayName": "Success Tint" },
+      "danger": { "role": "neutral", "displayName": "Danger" },
+      "danger-tint": { "role": "neutral", "displayName": "Danger Tint" }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Hero H1 only, one per page." },
+      "headline": { "displayName": "Headline", "purpose": "Page-level H1/H2 — course and lesson titles." },
+      "title": { "displayName": "Title", "purpose": "Card and section-level H2/H3, stat numbers." },
+      "body": { "displayName": "Body", "purpose": "Default reading text, capped ~65–75ch." },
+      "body-lead": { "displayName": "Body Lead", "purpose": "Hero subtext and single-paragraph lead-ins." },
+      "label": { "displayName": "Label", "purpose": "Eyebrows, badges, stat tags — DM Mono only." }
+    },
+    "shadows": [
+      { "name": "ambient-card", "value": "0 1px 0 rgba(255,255,255,0.5) inset, 0 8px 20px -14px rgba(15,44,82,0.35)", "purpose": "Resting state for course cards, stat tiles, practice cards." },
+      { "name": "ambient-card-gold", "value": "0 1px 0 rgba(255,255,255,0.6) inset, 0 8px 18px -14px rgba(179,110,20,0.4)", "purpose": "Resting state for gold-toned/gamified surfaces." },
+      { "name": "lifted-hover", "value": "0 1px 0 rgba(255,255,255,0.4) inset, 0 16px 32px -18px rgba(15,44,82,0.35)", "purpose": "Hover state on cards and lesson-list rows." },
+      { "name": "button-press", "value": "0 1px 3px -1px rgba(5,21,38,0.4) inset", "purpose": "Active/pressed button state." },
+      { "name": "deep-panel", "value": "0 1px 0 rgba(255,255,255,0.6) inset, 0 20px 40px rgba(15,44,82,0.12)", "purpose": "The schedule calendar and other large, prominent glass surfaces." }
+    ],
+    "motion": [
+      { "name": "ease-out", "value": "cubic-bezier(0.16, 1, 0.3, 1)", "purpose": "Default easing for hover lifts, presses, and transitions." },
+      { "name": "duration-fast", "value": "150ms", "purpose": "Button hover/press feedback." },
+      { "name": "duration-base", "value": "220ms", "purpose": "Card hover, border-color, and shadow transitions." }
+    ],
+    "breakpoints": [
+      { "name": "mobile", "value": "720px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Gold gradient CTA — start a course, mark a lesson complete.",
+      "html": "<button class=\"ds-btn-primary\">Start course</button>",
+      "css": ".ds-btn-primary { background: linear-gradient(180deg, #f8cb85 0%, #f0b155 14%, #e6a03c 55%, #d38f2e 100%); color: #0f2c52; border: 0; border-radius: 5px; padding: 14px 18px; font-weight: 700; font-family: 'DM Sans', Arial, sans-serif; box-shadow: 0 1px 0 rgba(255,255,255,0.65) inset, 0 5px 14px -4px rgba(179,110,20,0.6); transition: transform 150ms cubic-bezier(0.16,1,0.3,1); } .ds-btn-primary:hover { transform: translateY(-2px); } .ds-btn-primary:active { transform: scale(0.97); box-shadow: 0 2px 5px -2px rgba(179,110,20,0.5) inset; } .ds-btn-primary:focus-visible { outline: 2px solid #0f2c52; outline-offset: 2px; }"
+    },
+    {
+      "name": "Header Button",
+      "kind": "button",
+      "refersTo": "button-header",
+      "description": "Navy gradient CTA reserved for the persistent nav header.",
+      "html": "<button class=\"ds-btn-header\">Get started</button>",
+      "css": ".ds-btn-header { background: linear-gradient(180deg, #2a4d82 0%, #17386b 14%, #0f2c52 55%, #0b2242 100%); color: #fff; border: 0; border-radius: 5px; padding: 11px 16px; font-weight: 700; font-size: 14px; font-family: 'DM Sans', Arial, sans-serif; box-shadow: 0 1px 0 rgba(255,255,255,0.18) inset, 0 5px 14px -4px rgba(5,21,38,0.55); transition: transform 150ms cubic-bezier(0.16,1,0.3,1); } .ds-btn-header:hover { transform: translateY(-2px); } .ds-btn-header:active { transform: scale(0.97); }"
+    },
+    {
+      "name": "Glass Card",
+      "kind": "card",
+      "refersTo": "card-glass",
+      "description": "Lit Glass surface used for course cards, stat tiles, and practice cards.",
+      "html": "<div class=\"ds-card-glass\"><h3 class=\"ds-card-title\">Spam Calls &amp; Messages</h3><p class=\"ds-card-body\">Learn to spot the patterns scammers rely on.</p></div>",
+      "css": ".ds-card-glass { background: rgba(219,232,246,0.6); backdrop-filter: blur(12px) saturate(160%); -webkit-backdrop-filter: blur(12px) saturate(160%); border: 1px solid rgba(255,255,255,0.7); border-radius: 8px; padding: 24px; box-shadow: 0 1px 0 rgba(255,255,255,0.5) inset, 0 8px 20px -14px rgba(15,44,82,0.35); transition: transform 220ms cubic-bezier(0.16,1,0.3,1), box-shadow 220ms cubic-bezier(0.16,1,0.3,1); } .ds-card-glass:hover { transform: translateY(-3px); box-shadow: 0 1px 0 rgba(255,255,255,0.4) inset, 0 12px 24px -14px rgba(15,44,82,0.3); } .ds-card-title { font-family: Fraunces, Georgia, serif; font-weight: 700; font-size: 24px; margin: 0 0 10px; color: #0a1f33; } .ds-card-body { font-family: 'DM Sans', Arial, sans-serif; font-size: 15px; color: #52697f; margin: 0; }"
+    },
+    {
+      "name": "Input Field",
+      "kind": "input",
+      "refersTo": "input-field",
+      "description": "Text input used across auth, admin, and contact forms.",
+      "html": "<input class=\"ds-input\" type=\"text\" placeholder=\"Email address\" />",
+      "css": ".ds-input { padding: 10px 12px; border: 1px solid #ccd8e4; border-radius: 5px; font-size: 15px; font-family: 'DM Sans', Arial, sans-serif; background: #fff; color: #0a1f33; box-shadow: inset 0 1px 3px rgba(10,31,51,0.1); } .ds-input:focus-visible { outline: 2px solid #0f2c52; outline-offset: 2px; }"
+    },
+    {
+      "name": "Badge Pill",
+      "kind": "chip",
+      "refersTo": "badge-pill",
+      "description": "Metadata pill — week numbers, XP/streak counts, example tags. Never a call to action.",
+      "html": "<span class=\"ds-badge\">Week 1</span>",
+      "css": ".ds-badge { display: inline-block; font-family: 'DM Mono', monospace; font-size: 12px; font-weight: 700; text-transform: uppercase; color: #0f2c52; background: linear-gradient(180deg, #fff 0%, #e6edf5 100%); box-shadow: 0 1px 0 rgba(255,255,255,0.7) inset; padding: 6px 12px; border-radius: 999px; white-space: nowrap; }"
+    },
+    {
+      "name": "Quiz Choice Button",
+      "kind": "button",
+      "refersTo": "practice-option",
+      "description": "The core stateful component — a quiz answer that behaves like a button but reads as a card. States: default, hover, selected, correct, incorrect, dimmed.",
+      "html": "<button class=\"ds-choice ds-choice--correct\">A stranger calling and asking to verify your bank PIN</button>",
+      "css": ".ds-choice { display: block; width: 100%; text-align: left; padding: 16px 18px; border: 2px solid #ccd8e4; border-radius: 8px; background: #fff; box-shadow: 0 1px 0 rgba(255,255,255,0.8) inset, 0 2px 6px -4px rgba(15,44,82,0.2); font-weight: 600; font-size: 16px; font-family: 'DM Sans', Arial, sans-serif; color: #0a1f33; transition: 150ms border-color, 150ms background, 150ms box-shadow, transform 150ms cubic-bezier(0.16,1,0.3,1); } .ds-choice:hover:not(:disabled) { border-color: #1f6fb2; transform: translateY(-1px); } .ds-choice--correct { border-color: #2e8540; background: #e3f3e6; color: #1c5c2b; } .ds-choice--incorrect { border-color: #b3261e; background: #fbe4e2; color: #7a1a15; } .ds-choice--dimmed { opacity: 0.55; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Harbor Light",
+    "overview": "VeraBlock's visual world is a deep, steady navy harbor with a warm gold lantern cutting through it — trustworthy and unhurried on one hand, warm and encouraging on the other. Surfaces are built from Lit Glass: translucent panels that blur and saturate what's behind them, each catching a thin highlight along its top edge like light on the water. A faint paper grain runs under every page, so even the sharpest gradients still feel handmade rather than manufactured on a screen. This system explicitly rejects the corporate cybersecurity vendor look — no fear-based dark UI, no generic enterprise navy-and-lock-icon SaaS aesthetic, no manufactured urgency. It equally rejects childish edtech — no cartoon mascots, no cutesy illustration, nothing that risks reading as patronizing to an adult, senior-heavy audience.",
+    "keyCharacteristics": [
+      "Navy-and-gold palette carrying civic trust and warm encouragement in the same breath",
+      "Lit Glass surfaces: translucent, blurred, saturated, edge-lit — never flat opaque cards",
+      "Serif display type (Fraunces) paired with a plain, humanist sans body (DM Sans) and a mono label voice (DM Mono)",
+      "Soft, tinted shadows instead of neutral gray ones — blue-tinted under navy/paper surfaces, gold-tinted under gold/gamified surfaces",
+      "Generous touch targets, honored prefers-reduced-motion, and text sized for a senior-heavy audience"
+    ],
+    "rules": [
+      { "name": "The Tinted Shadow Rule", "body": "No shadow is neutral gray. Shadows under blue/navy/paper surfaces carry rgba(15,44,82,…); shadows under gold/gamified surfaces carry rgba(179,110,20,…). A gray drop shadow anywhere in this system is a bug.", "section": "colors" },
+      { "name": "The One Accent Rule", "body": "Gold means action or achievement — a button, a completed step, a streak. It never appears as decoration. If gold shows up and nothing is being asked of or credited to the user, remove it.", "section": "colors" },
+      { "name": "The Serif-Says-Trust Rule", "body": "Fraunces appears only on headings, blockquotes, and the large numbers in stat tiles — never on body copy, buttons, or labels.", "section": "typography" },
+      { "name": "The No-Tiny-Type Rule", "body": "Nothing below 11px, and body text never drops below 1rem (16px) even in dense admin/practice UI. Treat 16px as the floor given the senior-heavy audience.", "section": "typography" },
+      { "name": "The Inset Highlight Rule", "body": "Every elevated surface gets a thin white inset highlight along its top edge before anything else — it's what separates glass catching light from a flat card with a shadow.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do use the Lit Glass treatment (inset highlight + tinted shadow + blur/saturate backdrop) on every elevated surface — it's the system's signature, not an occasional flourish.",
+      "Do keep gold reserved for action and achievement (buttons, completed states, streaks).",
+      "Do hold body text at 16px minimum and give muted/secondary text real contrast against paper — this audience skews senior.",
+      "Do honor prefers-reduced-motion on every hover/press/entrance animation.",
+      "Do keep quiz and form states distinguishable by border/shape, not color alone."
+    ],
+    "donts": [
+      "Don't design anything that reads as a corporate cybersecurity vendor — no fear-based dark UI, no generic enterprise navy-and-lock-icon SaaS look, no manufactured urgency copy.",
+      "Don't design anything that reads as childish edtech — no cartoon mascots, no cutesy illustration style.",
+      "Don't use a flat, untinted gray box-shadow anywhere — every shadow in this system is tinted navy or gold.",
+      "Don't skip the inset highlight on a card and call it done.",
+      "Don't drop label type (DM Mono) below 11px or use it for anything longer than a short tag/number."
+    ]
+  }
+}

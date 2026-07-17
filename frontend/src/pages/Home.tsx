@@ -5,11 +5,15 @@ import type { CourseSummary } from '../lib/types'
 
 export default function Home() {
   const [courses, setCourses] = useState<CourseSummary[]>([])
+  const [coursesStatus, setCoursesStatus] = useState<'loading' | 'ready' | 'error'>('loading')
 
   useEffect(() => {
     listCourses()
-      .then((data) => setCourses(data.courses))
-      .catch(() => setCourses([]))
+      .then((data) => {
+        setCourses(data.courses)
+        setCoursesStatus('ready')
+      })
+      .catch(() => setCoursesStatus('error'))
   }, [])
 
   return (
@@ -17,15 +21,18 @@ export default function Home() {
       <section className="hero-shell">
         <div className="hero">
           <p className="eyebrow">
-            <span></span> Free internet safety education
+            <span aria-hidden="true"></span> Free internet safety education
           </p>
           <h1>Learn to stay safe online.</h1>
           <p className="hero-text">
-            VeraBlock teaches practical internet-security skills through short video lessons — and brings a live,
-            in-person course to senior living communities and similar spaces.
+            VeraBlock teaches practical internet-security skills through free, short video lessons — and brings a
+            live, in-person course to senior living communities and similar spaces.
           </p>
           <div className="hero-paths">
             <div className="hero-path-card hero-path-card--light">
+              <p className="eyebrow">
+                <span aria-hidden="true"></span> Most people start here
+              </p>
               <h2>Free video courses</h2>
               <p>
                 Short lessons on real threats — scams, AI-generated content, weak passwords — free to watch any
@@ -37,14 +44,14 @@ export default function Home() {
             </div>
             <div className="hero-path-card hero-path-card--dark">
               <p className="eyebrow">
-                <span></span> For senior living communities
+                <span aria-hidden="true"></span> For senior living communities
               </p>
               <h2>In-person courses</h2>
               <p>
                 Our team leads a live, four-week course on-site — covering spam calls, AI voices, and AI-generated
                 images and video.
               </p>
-              <Link className="button button-primary" to="/in-person-courses">
+              <Link className="button button-secondary-dark" to="/in-person-courses">
                 Learn about the in-person course
               </Link>
             </div>
@@ -67,21 +74,29 @@ export default function Home() {
         </div>
       </section>
 
-      {courses.length > 0 && (
+      {coursesStatus === 'error' && (
+        <section className="featured-courses section-shell">
+          <p className="course-load-error">Couldn't load courses right now — try refreshing the page.</p>
+        </section>
+      )}
+
+      {coursesStatus === 'ready' && courses.length > 0 && (
         <section className="featured-courses section-shell">
           <h2>Start learning</h2>
-          <div className="course-grid">
+          <ul className="course-grid" role="list">
             {courses.map((course) => (
-              <Link key={course.id} className="course-card" to={`/courses/${course.id}`}>
-                <h2>{course.title}</h2>
-                <p>{course.description}</p>
-                <span>
-                  {course.unitCount} unit{course.unitCount === 1 ? '' : 's'} · {course.lessonCount} lesson
-                  {course.lessonCount === 1 ? '' : 's'}
-                </span>
-              </Link>
+              <li key={course.id}>
+                <Link className="course-card" to={`/courses/${course.id}`}>
+                  <h2>{course.title}</h2>
+                  <p>{course.description}</p>
+                  <span>
+                    {course.unitCount} unit{course.unitCount === 1 ? '' : 's'} · {course.lessonCount} lesson
+                    {course.lessonCount === 1 ? '' : 's'}
+                  </span>
+                </Link>
+              </li>
             ))}
-          </div>
+          </ul>
         </section>
       )}
     </main>

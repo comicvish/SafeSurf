@@ -1,12 +1,14 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../lib/authContext'
+import { getSignUpErrorMessage } from '../lib/authErrors'
 
 export default function Signup() {
   const { signUp } = useAuth()
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
@@ -17,8 +19,8 @@ export default function Signup() {
     try {
       await signUp(email, password)
       navigate('/dashboard')
-    } catch {
-      setError('Could not create an account. Check your details (password must be at least 6 characters) and try again.')
+    } catch (err) {
+      setError(getSignUpErrorMessage(err))
     } finally {
       setSubmitting(false)
     }
@@ -30,15 +32,44 @@ export default function Signup() {
       <form className="auth-form" onSubmit={handleSubmit}>
         <label>
           Email
-          <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+          <input
+            type="email"
+            name="email"
+            autoComplete="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
         </label>
         <label>
-          Password
-          <input type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} />
+          Password <span className="field-hint">(at least 6 characters)</span>
+          <div className="password-field">
+            <input
+              type={showPassword ? 'text' : 'password'}
+              name="new-password"
+              autoComplete="new-password"
+              required
+              minLength={6}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <button
+              type="button"
+              className="password-toggle"
+              onClick={() => setShowPassword((show) => !show)}
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+            >
+              {showPassword ? 'Hide' : 'Show'}
+            </button>
+          </div>
         </label>
-        {error && <p className="auth-error">{error}</p>}
+        {error && (
+          <p className="auth-error" role="alert">
+            {error}
+          </p>
+        )}
         <button className="button button-primary" type="submit" disabled={submitting}>
-          {submitting ? 'Creating account…' : 'Sign up'}
+          {submitting ? 'Creating account…' : 'Create account'}
         </button>
       </form>
       <p>

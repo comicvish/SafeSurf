@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, NavLink } from 'react-router-dom'
 import { useAuth } from '../lib/authContext'
 import { useIsAdmin } from '../lib/adminContext'
 import { useStats } from '../lib/statsContext'
@@ -33,19 +33,19 @@ export default function Header() {
             {stats.currentStreak}-day streak · {stats.xp} XP
           </span>
         )}
-        <Link to="/courses" onClick={() => setMenuOpen(false)}>
+        <NavLink to="/courses" onClick={() => setMenuOpen(false)}>
           Courses
-        </Link>
-        <Link to="/in-person-courses" onClick={() => setMenuOpen(false)}>
+        </NavLink>
+        <NavLink to="/in-person-courses" onClick={() => setMenuOpen(false)}>
           In-Person Courses
-        </Link>
-        <Link to="/dashboard" onClick={() => setMenuOpen(false)}>
+        </NavLink>
+        <NavLink to="/dashboard" onClick={() => setMenuOpen(false)}>
           My progress
-        </Link>
+        </NavLink>
         {isAdmin && (
-          <Link to="/admin" onClick={() => setMenuOpen(false)}>
+          <NavLink to="/admin" onClick={() => setMenuOpen(false)}>
             Admin
-          </Link>
+          </NavLink>
         )}
         {user ? (
           <button

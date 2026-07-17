@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { getPracticeSession, getQuestionAnswer, submitPractice } from '../lib/api'
 import type { PracticeAnswerReveal, PracticeSession, PracticeSubmitResult } from '../lib/types'
@@ -9,7 +9,7 @@ function encouragement(score: number, total: number): string {
   if (ratio === 1) return 'Perfect score!'
   if (ratio >= 0.8) return 'Excellent work!'
   if (ratio >= 0.5) return 'Nice work — keep going!'
-  return 'Keep practicing — you’ll get it!'
+  return "This one's worth another look."
 }
 
 export default function Practice() {
@@ -21,9 +21,11 @@ export default function Practice() {
   const [answers, setAnswers] = useState<number[]>([])
   const [reveals, setReveals] = useState<Record<string, PracticeAnswerReveal>>({})
   const [revealError, setRevealError] = useState<string | null>(null)
+  const [revealSkipped, setRevealSkipped] = useState(false)
   const [result, setResult] = useState<PracticeSubmitResult | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const questionHeadingRef = useRef<HTMLHeadingElement>(null)
 
   useEffect(() => {
     if (!lessonId) return
@@ -33,6 +35,7 @@ export default function Practice() {
     setAnswers([])
     setReveals({})
     setRevealError(null)
+    setRevealSkipped(false)
     setResult(null)
     setSubmitError(null)
     getPracticeSession(lessonId)
@@ -47,6 +50,10 @@ export default function Practice() {
     }
   }, [lessonId])
 
+  useEffect(() => {
+    questionHeadingRef.current?.focus()
+  }, [currentIndex])
+
   if (session === undefined) return <main className="page-status">Loading practice…</main>
   if (!session) {
     return (
@@ -58,6 +65,13 @@ export default function Practice() {
   }
 
   const total = session.questions.length
+
+  const loadReveal = (id: string, questionId: string) => {
+    setRevealError(null)
+    getQuestionAnswer(id, questionId)
+      .then((answer) => setReveals((prev) => ({ ...prev, [questionId]: answer })))
+      .catch(() => setRevealError('Could not check your answer.'))
+  }
 
   const handleFinish = async (finalAnswers: number[]) => {
     if (!lessonId) return
@@ -82,16 +96,33 @@ export default function Practice() {
   }
 
   if (result) {
+    const ratio = result.score / result.totalQuestions
+    const primaryAction = (
+      <button className="button button-primary" onClick={handleTryAgain}>
+        Try again
+      </button>
+    )
+    const secondaryAction = (
+      <Link className="button" to={`/lessons/${session.lessonId}`}>
+        Back to lesson
+      </Link>
+    )
+
     return (
       <main className="practice-page section-shell">
         <section className="practice-result">
           <p className="eyebrow">
-            <span></span>Practice complete
+            <span aria-hidden="true"></span>Practice complete
           </p>
           <h1>{encouragement(result.score, result.totalQuestions)}</h1>
           <p className="practice-score">
             {result.score} / {result.totalQuestions} correct
           </p>
+          {ratio < 0.5 && (
+            <p className="practice-result-nudge">
+              Consider rewatching the lesson before trying again — this material is worth getting comfortable with.
+            </p>
+          )}
           <div className="practice-result-stats">
             <div className="practice-stat">
               <strong>+{result.xpEarned}</strong>
@@ -107,12 +138,17 @@ export default function Practice() {
             </div>
           </div>
           <div className="practice-result-actions">
-            <button className="button button-primary" onClick={handleTryAgain}>
-              Try again
-            </button>
-            <Link className="button" to={`/lessons/${session.lessonId}`}>
-              Back to lesson
-            </Link>
+            {ratio < 0.5 ? (
+              <>
+                {secondaryAction}
+                {primaryAction}
+              </>
+            ) : (
+              <>
+                {primaryAction}
+                {secondaryAction}
+              </>
+            )}
           </div>
         </section>
       </main>
@@ -124,6 +160,7 @@ export default function Practice() {
   const hasAnswered = selected !== undefined
   const isLastQuestion = currentIndex === total - 1
   const reveal = reveals[question.id]
+  const progress = ((currentIndex + (hasAnswered ? 1 : 0)) / total) * 100
 
   const handleSelect = (optionIndex: number) => {
     if (hasAnswered || !lessonId) return
@@ -132,10 +169,8 @@ export default function Practice() {
       next[currentIndex] = optionIndex
       return next
     })
-    setRevealError(null)
-    getQuestionAnswer(lessonId, question.id)
-      .then((answer) => setReveals((prev) => ({ ...prev, [question.id]: answer })))
-      .catch(() => setRevealError('Could not load the explanation for this question, but you can still continue.'))
+    setRevealSkipped(false)
+    loadReveal(lessonId, question.id)
   }
 
   const handleContinue = () => {
@@ -149,15 +184,17 @@ export default function Practice() {
   return (
     <main className="practice-page section-shell">
       <p className="eyebrow">
-        <span></span>Question {currentIndex + 1} of {total}
+        <span aria-hidden="true"></span>Question {currentIndex + 1} of {total}
       </p>
       <div className="practice-progress">
-        <div className="practice-progress-bar" style={{ width: `${(currentIndex / total) * 100}%` }} />
+        <div className="practice-progress-bar" style={{ width: `${progress}%` }} />
       </div>
 
-      <h1 className="practice-question">{question.prompt}</h1>
+      <h1 className="practice-question" ref={questionHeadingRef} tabIndex={-1}>
+        {question.prompt}
+      </h1>
 
-      <div className="practice-options">
+      <div className="practice-options" role="radiogroup" aria-label={`Question ${currentIndex + 1} options`}>
         {question.options.map((option, index) => {
           let state = ''
           if (hasAnswered) {
@@ -175,27 +212,54 @@ export default function Practice() {
               className={`practice-option ${state}`.trim()}
               onClick={() => handleSelect(index)}
               disabled={hasAnswered}
+              role="radio"
+              aria-checked={index === selected}
             >
-              {option}
+              <span className="practice-option-icon" aria-hidden="true">
+                {state === 'correct' ? '✓' : state === 'incorrect' ? '✕' : ''}
+              </span>
+              <span>
+                {option}
+                {state === 'correct' && <span className="sr-only"> — correct answer</span>}
+                {state === 'incorrect' && <span className="sr-only"> — your answer, incorrect</span>}
+              </span>
             </button>
           )
         })}
       </div>
 
       {hasAnswered && (
-        <div className="practice-feedback">
+        <div className="practice-feedback" aria-live="polite">
           {reveal ? (
             <p>{reveal.explanation}</p>
           ) : revealError ? (
-            <p className="auth-error">{revealError}</p>
+            <div className="practice-feedback-error">
+              <p className="auth-error" role="alert">
+                {revealError}
+              </p>
+              <div className="practice-feedback-error-actions">
+                <button className="button" onClick={() => lessonId && loadReveal(lessonId, question.id)}>
+                  Try again
+                </button>
+                {!revealSkipped && (
+                  <button className="text-link" onClick={() => setRevealSkipped(true)}>
+                    Skip — I'll find out later
+                  </button>
+                )}
+              </div>
+            </div>
           ) : (
-            <p>Checking your answer…</p>
+            <p role="status">Checking your answer…</p>
           )}
-          {submitError && <p className="auth-error">{submitError}</p>}
+          {submitError && (
+            <p className="auth-error" role="alert">
+              {submitError}
+            </p>
+          )}
           <button
             className="button button-primary"
             onClick={handleContinue}
-            disabled={submitting || (!reveal && !revealError)}
+            disabled={submitting || (!reveal && !revealSkipped)}
           >
             {submitting ? 'Submitting…' : isLastQuestion ? 'See results' : 'Next question'}
           </button>

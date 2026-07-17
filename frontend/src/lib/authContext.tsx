@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 import {
   createUserWithEmailAndPassword,
   onAuthStateChanged,
+  sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signOut,
   type User,
@@ -14,6 +15,7 @@ interface AuthContextValue {
   signUp: (email: string, password: string) => Promise<void>
   signIn: (email: string, password: string) => Promise<void>
   signOutUser: () => Promise<void>
+  resetPassword: (email: string) => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -39,6 +41,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await signInWithEmailAndPassword(auth, email, password)
     },
     signOutUser: () => signOut(auth),
+    resetPassword: (email) => sendPasswordResetEmail(auth, email),
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

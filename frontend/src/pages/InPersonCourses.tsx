@@ -52,7 +52,7 @@ export default function InPersonCourses() {
     <main className="in-person-courses">
       <section className="schedule-hero section-shell">
         <p className="eyebrow">
-          <span></span> In-person courses for senior living communities
+          <span aria-hidden="true"></span> In-person courses for senior living communities
         </p>
         <h1>The full four-week schedule.</h1>
         <p className="schedule-hero-text">
@@ -60,30 +60,23 @@ export default function InPersonCourses() {
           community, and we build the course around it. No technical experience needed, and nothing for your staff
           to set up.
         </p>
+        <p className="schedule-hero-alt-link">
+          Looking for the free self-paced lessons instead? <Link to="/courses">Browse courses</Link>
+        </p>
         <div className="schedule-calendar-wrap">
           <span className="schedule-example-badge">Example rhythm — day &amp; time are up to you</span>
-          <div className="schedule-calendar">
-            {DAY_LABELS.map((day) => (
-              <div className="schedule-day-label" key={day}>
-                {day}
-              </div>
+          <ul className="schedule-rhythm">
+            {CURRICULUM.map((item) => (
+              <li className="schedule-rhythm-row" key={item.week}>
+                <span className="curriculum-week-number">{item.week}</span>
+                <span className="schedule-rhythm-day">{DAY_LABELS[SESSION_DAY_INDEX]}s (example)</span>
+                <span className="schedule-cell-topic">{item.title}</span>
+              </li>
             ))}
-            {CURRICULUM.flatMap((item) =>
-              Array.from({ length: 7 }, (_, day) =>
-                day === SESSION_DAY_INDEX ? (
-                  <div className="schedule-cell session" key={`${item.week}-${day}`}>
-                    <span className="schedule-cell-week">{item.week}</span>
-                    <span className="schedule-cell-topic">{item.title}</span>
-                  </div>
-                ) : (
-                  <div className="schedule-cell" key={`${item.week}-${day}`} />
-                ),
-              ),
-            )}
-          </div>
+          </ul>
           <p className="schedule-calendar-note">
-            This is just an example — email us and we'll schedule the exact day and time around your community's
-            calendar.
+            One live session a week, same day and time, for four weeks — email us and we'll schedule the exact day
+            and time around your community's calendar.
           </p>
         </div>
       </section>
@@ -109,7 +102,7 @@ export default function InPersonCourses() {
           ))}
         </ul>
         <a className="button button-primary" href="#contact">
-          Book a course
+          Request this course
         </a>
       </section>
 
@@ -122,9 +115,6 @@ export default function InPersonCourses() {
         <ContactForm />
         <p className="community-cta-secondary">
           Prefer email directly? <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
-        </p>
-        <p className="community-cta-secondary">
-          Looking for the free self-paced lessons instead? <Link to="/courses">Browse courses</Link>
         </p>
       </section>
     </main>
