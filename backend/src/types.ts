@@ -29,6 +29,11 @@ export interface UnassignedVideo {
   privacyStatus: string
 }
 
+export interface UnassignedVideoPage {
+  videos: UnassignedVideo[]
+  nextCursor: string | null
+}
+
 export interface LessonDoc {
   unitId: string
   videoId: string
@@ -79,6 +84,7 @@ export interface SyncResult {
   channelVideosFound: number
   newVideos: number
   updatedVideos: number
+  failedVideos: number
 }
 
 export interface PracticeQuestionDoc {

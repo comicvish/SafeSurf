@@ -1,4 +1,6 @@
+import { FieldPath } from '@google-cloud/firestore'
 import { db } from './firestore.js'
+import { chunk, FIRESTORE_IN_QUERY_LIMIT } from './firestoreUtils.js'
 import type { SyncResult, VideoDoc } from '../types.js'
 
 const YOUTUBE_API_BASE = 'https://www.googleapis.com/youtube/v3'
@@ -81,18 +83,41 @@ export async function syncYoutubeVideos(): Promise<SyncResult> {
 
   const uploadsPlaylistId = await getUploadsPlaylistId(apiKey, channelId)
   if (!uploadsPlaylistId) {
-    return { channelVideosFound: 0, newVideos: 0, updatedVideos: 0 }
+    return { channelVideosFound: 0, newVideos: 0, updatedVideos: 0, failedVideos: 0 }
   }
 
   const videoIds = await getUploadedVideoIds(apiKey, uploadsPlaylistId)
   const videos = await getVideoDetails(apiKey, videoIds)
+  if (videos.length === 0) {
+    return { channelVideosFound: videoIds.length, newVideos: 0, updatedVideos: 0, failedVideos: 0 }
+  }
+
+  // One batched existence check (chunked `in` queries, doc-ID projection
+  // only) instead of an `await ref.get()` per video, then one BulkWriter
+  // instead of an `await ref.set()` per video — replaces what was up to
+  // 2 sequential Firestore round-trips per synced video with a handful of
+  // batched ones.
+  const existingIds = new Set<string>()
+  const existingSnaps = await Promise.all(
+    chunk(
+      videos.map((v) => v.id),
+      FIRESTORE_IN_QUERY_LIMIT,
+    ).map((batch) => db.collection('videos').select().where(FieldPath.documentId(), 'in', batch).get()),
+  )
+  existingSnaps.forEach((snap) => snap.forEach((doc) => existingIds.add(doc.id)))
 
   let newVideos = 0
   let updatedVideos = 0
+  let failedVideos = 0
+  const writer = db.bulkWriter()
+  // BulkWriter retries transient failures internally, but a write can still
+  // fail permanently — attach a handler to every write promise (so counts
+  // only reflect writes that actually succeeded, and no rejection goes
+  // unhandled) instead of assuming success once the batch is enqueued.
+  const pending: Promise<void>[] = []
 
   for (const video of videos) {
     const ref = db.collection('videos').doc(video.id)
-    const existing = await ref.get()
     const thumbnailUrl = video.snippet.thumbnails.medium?.url ?? video.snippet.thumbnails.default?.url ?? ''
 
     const metadata = {
@@ -104,15 +129,37 @@ export async function syncYoutubeVideos(): Promise<SyncResult> {
       privacyStatus: video.status.privacyStatus,
     }
 
-    if (existing.exists) {
-      // Never touch `status` on re-sync — it may already be 'assigned' by an admin.
-      await ref.set(metadata, { merge: true })
-      updatedVideos++
-    } else {
-      await ref.set({ ...metadata, status: 'unassigned' } satisfies VideoDoc)
-      newVideos++
-    }
+    // Never touch `status` on re-sync — it may already be 'assigned' by an admin.
+    // update()/create() (rather than set()) are existence-preconditioned, so
+    // a race between the existence check above and this write (the video
+    // gets deleted, or a second sync run creates it first) fails the write
+    // instead of silently resurrecting a deleted doc or clobbering one that
+    // was created concurrently — a failure here is caught below and counted.
+    const isUpdate = existingIds.has(video.id)
+    const writePromise = isUpdate
+      ? writer.update(ref, metadata)
+      : writer.create(ref, { ...metadata, status: 'unassigned' } satisfies VideoDoc)
+
+    pending.push(
+      writePromise.then(
+        () => {
+          if (isUpdate) updatedVideos++
+          else newVideos++
+        },
+        (err: unknown) => {
+          failedVideos++
+          console.error(`Failed to sync video ${video.id} to Firestore`, err)
+        },
+      ),
+    )
   }
 
-  return { channelVideosFound: videoIds.length, newVideos, updatedVideos }
+  await writer.close()
+  await Promise.all(pending)
+
+  if (failedVideos > 0) {
+    console.error(`YouTube sync: ${failedVideos} of ${videos.length} video(s) failed to write to Firestore`)
+  }
+
+  return { channelVideosFound: videoIds.length, newVideos, updatedVideos, failedVideos }
 }

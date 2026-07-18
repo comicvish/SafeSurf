@@ -6,7 +6,7 @@ import type {
   PracticeSession,
   PracticeSubmitResult,
   SyncResult,
-  UnassignedVideo,
+  UnassignedVideoPage,
   UserStats,
 } from './types'
 import { auth } from './firebaseClient'
@@ -30,6 +30,12 @@ export function listCourses(): Promise<{ courses: CourseSummary[] }> {
 
 export function getCourse(courseId: string): Promise<{ course: CourseDetail }> {
   return getJson(`/api/courses/${courseId}`)
+}
+
+// Full nested detail for every course in one request — replaces calling
+// getCourse() once per course in a loop.
+export function listCourseDetails(): Promise<{ courses: CourseDetail[] }> {
+  return getJson('/api/courses/details')
 }
 
 export function getLesson(lessonId: string): Promise<{ lesson: LessonDetail }> {
@@ -61,9 +67,12 @@ export async function triggerYoutubeSync(): Promise<SyncResult> {
   return data.result
 }
 
-export async function listUnassignedVideos(): Promise<UnassignedVideo[]> {
-  const data = await getJson<{ videos: UnassignedVideo[] }>('/api/admin/videos', { headers: await authHeaders() })
-  return data.videos
+export async function listUnassignedVideos(options: { limit?: number; cursor?: string } = {}): Promise<UnassignedVideoPage> {
+  const params = new URLSearchParams()
+  if (options.limit) params.set('limit', String(options.limit))
+  if (options.cursor) params.set('cursor', options.cursor)
+  const query = params.toString()
+  return getJson(`/api/admin/videos${query ? `?${query}` : ''}`, { headers: await authHeaders() })
 }
 
 export async function assignVideoToLesson(input: {

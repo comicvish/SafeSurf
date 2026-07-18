@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { getCourse, listCourses } from '../lib/api'
+import { listCourseDetails } from '../lib/api'
 import { useAuth } from '../lib/authContext'
 import { useProgress } from '../lib/progressContext'
 import { useStats } from '../lib/statsContext'
@@ -13,9 +13,7 @@ export default function Dashboard() {
   const { user } = useAuth()
   const { completedLessonIds } = useProgress()
   const { stats } = useStats()
-  const [courses, setCourses] = useState<CourseDetail[]>([])
-  const [expectedCount, setExpectedCount] = useState<number | null>(null)
-  const [failedCount, setFailedCount] = useState(0)
+  const [courses, setCourses] = useState<CourseDetail[] | null>(null)
   const [coursesError, setCoursesError] = useState<string | null>(null)
   const [retryCount, setRetryCount] = useState(0)
 
@@ -28,23 +26,13 @@ export default function Dashboard() {
 
   useEffect(() => {
     let active = true
-    setCourses([])
-    setExpectedCount(null)
-    setFailedCount(0)
+    setCourses(null)
     setCoursesError(null)
-    listCourses()
+    // One batched request for every course's full unit/lesson tree, instead
+    // of listing courses then fetching each one individually.
+    listCourseDetails()
       .then((data) => {
-        if (!active) return
-        setExpectedCount(data.courses.length)
-        data.courses.forEach((c) => {
-          getCourse(c.id)
-            .then((r) => {
-              if (active) setCourses((prev) => [...prev, r.course])
-            })
-            .catch(() => {
-              if (active) setFailedCount((n) => n + 1)
-            })
-        })
+        if (active) setCourses(data.courses)
       })
       .catch(() => {
         if (active) setCoursesError('Could not load your courses right now.')
@@ -54,9 +42,8 @@ export default function Dashboard() {
     }
   }, [retryCount])
 
-  const pendingCount = expectedCount !== null ? Math.max(0, expectedCount - courses.length - failedCount) : 0
-  const allSettled = expectedCount !== null && pendingCount === 0
-  const totalLessons = courses.reduce((sum, c) => sum + c.units.reduce((s, u) => s + u.lessons.length, 0), 0)
+  const allSettled = courses !== null
+  const totalLessons = (courses ?? []).reduce((sum, c) => sum + c.units.reduce((s, u) => s + u.lessons.length, 0), 0)
 
   return (
     <main className="dashboard section-shell">
@@ -92,20 +79,11 @@ export default function Dashboard() {
         </div>
       )}
 
-      {!coursesError && failedCount > 0 && (
-        <p className="course-load-error">
-          {failedCount} course{failedCount === 1 ? '' : 's'} couldn't be loaded.{' '}
-          <button className="text-link" onClick={() => setRetryCount((count) => count + 1)}>
-            Try again
-          </button>
-        </p>
-      )}
-
-      {!coursesError && allSettled && expectedCount === 0 && (
+      {!coursesError && allSettled && courses.length === 0 && (
         <p className="course-load-error">No courses are available right now.</p>
       )}
 
-      {!coursesError && expectedCount === null && (
+      {!coursesError && courses === null && (
         <div aria-busy="true" aria-label="Loading your courses">
           {Array.from({ length: 2 }, (_, index) => (
             <div className="unit-block" key={`initial-${index}`} aria-hidden="true">
@@ -120,8 +98,8 @@ export default function Dashboard() {
         </div>
       )}
 
-      {!coursesError && expectedCount !== null && (
-        <div aria-busy={!allSettled} aria-label="Loading your courses">
+      {!coursesError && courses !== null && (
+        <div aria-label="Your courses">
           {courses.map((course) => (
             <section key={course.id} className="unit-block">
               <h2>
@@ -152,17 +130,6 @@ export default function Dashboard() {
                 </div>
               ))}
             </section>
-          ))}
-
-          {Array.from({ length: pendingCount }, (_, index) => (
-            <div className="unit-block" key={`pending-${index}`} aria-hidden="true">
-              <span className="skeleton-line skeleton-line--unit-title" />
-              <div className="lesson-list-skeleton">
-                {Array.from({ length: 3 }, (_, lessonIndex) => (
-                  <span className="skeleton-line skeleton-line--lesson-row" key={lessonIndex} />
-                ))}
-              </div>
-            </div>
           ))}
         </div>
       )}

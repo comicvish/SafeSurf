@@ -1,5 +1,6 @@
 import { FieldPath } from '@google-cloud/firestore'
 import { db } from './firestore.js'
+import { chunk, FIRESTORE_IN_QUERY_LIMIT } from './firestoreUtils.js'
 import type {
   CourseDetail,
   CourseDoc,
@@ -10,18 +11,6 @@ import type {
   UnitWithLessons,
   VideoDoc,
 } from '../types.js'
-
-// Firestore's `in` operator accepts at most 30 values per query, so lookups
-// keyed off an arbitrary-length list of IDs need to be split into batches.
-const FIRESTORE_IN_QUERY_LIMIT = 30
-
-function chunk<T>(items: T[], size: number): T[][] {
-  const chunks: T[][] = []
-  for (let i = 0; i < items.length; i += size) {
-    chunks.push(items.slice(i, i + size))
-  }
-  return chunks
-}
 
 export async function createLesson(input: {
   unitId: string
@@ -56,40 +45,105 @@ export async function createLesson(input: {
   return { lessonId: lessonRef.id, video: { title: video.title, description: video.description } }
 }
 
+// Lists courses with unit/lesson *counts* only — used by the public course
+// catalog, which never needs unit titles or lesson bodies. Counts come from
+// Firestore's count() aggregation (billed per up-to-1000 index entries
+// scanned, minimum one read, regardless of matched document count) instead
+// of downloading every unit/lesson document just to call `.length` on it.
 export async function listCourses(): Promise<CourseSummary[]> {
+  // Field projection: only the 3 fields the summary response actually uses.
+  const coursesSnap = await db.collection('courses').orderBy('order').select('title', 'description', 'order').get()
+
+  return Promise.all(
+    coursesSnap.docs.map(async (doc) => {
+      const data = doc.data() as Pick<CourseDoc, 'title' | 'description' | 'order'>
+
+      // Still need the unit IDs themselves (not just a count) to chunk the
+      // lesson-count query below by unitId, so this one stays a document
+      // read — but `.select()` with no fields fetches IDs only, no field data.
+      const unitsSnap = await db.collection('units').where('courseId', '==', doc.id).select().get()
+      const unitIds = unitsSnap.docs.map((u) => u.id)
+
+      let lessonCount = 0
+      if (unitIds.length > 0) {
+        const countSnaps = await Promise.all(
+          chunk(unitIds, FIRESTORE_IN_QUERY_LIMIT).map((batch) =>
+            db.collection('lessons').where('unitId', 'in', batch).count().get(),
+          ),
+        )
+        lessonCount = countSnaps.reduce((sum, snap) => sum + snap.data().count, 0)
+      }
+
+      return {
+        id: doc.id,
+        title: data.title,
+        description: data.description,
+        order: data.order,
+        unitCount: unitIds.length,
+        lessonCount,
+      }
+    }),
+  )
+}
+
+// Full nested detail (units + lessons + lesson titles) for *every* course in
+// one batched call. Exists so the frontend can render a multi-course view
+// (the dashboard) with a single request instead of calling getCourseDetail
+// once per course — see routes/courses.ts's /courses/details.
+export async function listCourseDetails(): Promise<CourseDetail[]> {
   const [coursesSnap, unitsSnap, lessonsSnap] = await Promise.all([
     db.collection('courses').orderBy('order').get(),
-    db.collection('units').get(),
+    db.collection('units').orderBy('order').get(),
     db.collection('lessons').get(),
   ])
 
-  const unitIdsByCourse = new Map<string, string[]>()
-  unitsSnap.forEach((doc) => {
-    const data = doc.data() as UnitDoc
-    const list = unitIdsByCourse.get(data.courseId) ?? []
-    list.push(doc.id)
-    unitIdsByCourse.set(data.courseId, list)
-  })
+  const titleByVideoId = await getVideoTitles(lessonsSnap.docs.map((doc) => (doc.data() as LessonDoc).videoId))
 
-  const lessonCountByUnit = new Map<string, number>()
+  const lessonsByUnit = new Map<string, UnitWithLessons['lessons']>()
   lessonsSnap.forEach((doc) => {
     const data = doc.data() as LessonDoc
-    lessonCountByUnit.set(data.unitId, (lessonCountByUnit.get(data.unitId) ?? 0) + 1)
+    const list = lessonsByUnit.get(data.unitId) ?? []
+    list.push({
+      id: doc.id,
+      title: titleByVideoId.get(data.videoId) ?? '',
+      order: data.order,
+      summary: data.summary,
+    })
+    lessonsByUnit.set(data.unitId, list)
+  })
+  lessonsByUnit.forEach((lessons) => lessons.sort((a, b) => a.order - b.order))
+
+  const unitsByCourse = new Map<string, UnitWithLessons[]>()
+  unitsSnap.forEach((doc) => {
+    const data = doc.data() as UnitDoc
+    const list = unitsByCourse.get(data.courseId) ?? []
+    list.push({ id: doc.id, title: data.title, order: data.order, lessons: lessonsByUnit.get(doc.id) ?? [] })
+    unitsByCourse.set(data.courseId, list)
   })
 
   return coursesSnap.docs.map((doc) => {
     const data = doc.data() as CourseDoc
-    const unitIds = unitIdsByCourse.get(doc.id) ?? []
-    const lessonCount = unitIds.reduce((sum, unitId) => sum + (lessonCountByUnit.get(unitId) ?? 0), 0)
-    return {
-      id: doc.id,
-      title: data.title,
-      description: data.description,
-      order: data.order,
-      unitCount: unitIds.length,
-      lessonCount,
-    }
+    return { id: doc.id, title: data.title, description: data.description, units: unitsByCourse.get(doc.id) ?? [] }
   })
+}
+
+// Shared by listCourseDetails/getCourseDetail — resolves video titles for a
+// batch of video IDs using only the `title` field (Firestore `.select()`
+// projection), never the full video document.
+async function getVideoTitles(videoIds: string[]): Promise<Map<string, string>> {
+  const uniqueIds = [...new Set(videoIds)]
+  const titleByVideoId = new Map<string, string>()
+  if (uniqueIds.length === 0) return titleByVideoId
+
+  const videosSnaps = await Promise.all(
+    chunk(uniqueIds, FIRESTORE_IN_QUERY_LIMIT).map((batch) =>
+      db.collection('videos').select('title').where(FieldPath.documentId(), 'in', batch).get(),
+    ),
+  )
+  videosSnaps.forEach((snap) =>
+    snap.forEach((doc) => titleByVideoId.set(doc.id, (doc.data() as Pick<VideoDoc, 'title'>).title)),
+  )
+  return titleByVideoId
 }
 
 export async function getCourseDetail(courseId: string): Promise<CourseDetail | null> {
@@ -117,16 +171,7 @@ export async function getCourseDetail(courseId: string): Promise<CourseDetail | 
 
   // Lesson titles are never stored on the lesson — they always mirror the
   // linked video's current title, so a rename on YouTube shows up here too.
-  const videoIds = [...new Set([...lessonsByUnit.values()].flat().map((lesson) => lesson.videoId))]
-  const titleByVideoId = new Map<string, string>()
-  if (videoIds.length > 0) {
-    const videosSnaps = await Promise.all(
-      chunk(videoIds, FIRESTORE_IN_QUERY_LIMIT).map((batch) =>
-        db.collection('videos').where(FieldPath.documentId(), 'in', batch).get(),
-      ),
-    )
-    videosSnaps.forEach((snap) => snap.forEach((doc) => titleByVideoId.set(doc.id, (doc.data() as VideoDoc).title)))
-  }
+  const titleByVideoId = await getVideoTitles([...lessonsByUnit.values()].flat().map((lesson) => lesson.videoId))
 
   const units: UnitWithLessons[] = unitsSnap.docs.map((doc) => {
     const data = doc.data() as UnitDoc
@@ -142,6 +187,35 @@ export async function getCourseDetail(courseId: string): Promise<CourseDetail | 
   })
 
   return { id: courseId, title: course.title, description: course.description, units }
+}
+
+// Just the lesson IDs of a course, in curriculum order — used to compute a
+// lesson's prev/next neighbor. Deliberately leaner than getCourseDetail:
+// projects only `order`/`unitId` off each document instead of pulling
+// summaries and resolving video titles for the whole course on every single
+// lesson-detail request (this endpoint is the hottest read path in the app).
+async function getOrderedLessonIds(courseId: string): Promise<string[]> {
+  const unitsSnap = await db.collection('units').where('courseId', '==', courseId).orderBy('order').select().get()
+  const unitIds = unitsSnap.docs.map((doc) => doc.id)
+  if (unitIds.length === 0) return []
+
+  const lessonsSnaps = await Promise.all(
+    chunk(unitIds, FIRESTORE_IN_QUERY_LIMIT).map((batch) =>
+      db.collection('lessons').where('unitId', 'in', batch).select('unitId', 'order').get(),
+    ),
+  )
+  const lessonsByUnit = new Map<string, { id: string; order: number }[]>()
+  lessonsSnaps.forEach((snap) =>
+    snap.forEach((doc) => {
+      const data = doc.data() as Pick<LessonDoc, 'unitId' | 'order'>
+      const list = lessonsByUnit.get(data.unitId) ?? []
+      list.push({ id: doc.id, order: data.order })
+      lessonsByUnit.set(data.unitId, list)
+    }),
+  )
+  lessonsByUnit.forEach((lessons) => lessons.sort((a, b) => a.order - b.order))
+
+  return unitIds.flatMap((unitId) => (lessonsByUnit.get(unitId) ?? []).map((lesson) => lesson.id))
 }
 
 export async function getLessonDetail(lessonId: string): Promise<LessonDetail | null> {
@@ -161,11 +235,10 @@ export async function getLessonDetail(lessonId: string): Promise<LessonDetail | 
   if (!courseSnap.exists) return null
   const course = courseSnap.data() as CourseDoc
 
-  const courseDetail = await getCourseDetail(unit.courseId)
-  const flatLessonIds = (courseDetail?.units ?? []).flatMap((u) => u.lessons.map((l) => l.id))
-  const idx = flatLessonIds.indexOf(lessonId)
-  const prevLessonId = idx > 0 ? flatLessonIds[idx - 1] : null
-  const nextLessonId = idx >= 0 && idx < flatLessonIds.length - 1 ? flatLessonIds[idx + 1] : null
+  const orderedLessonIds = await getOrderedLessonIds(unit.courseId)
+  const idx = orderedLessonIds.indexOf(lessonId)
+  const prevLessonId = idx > 0 ? orderedLessonIds[idx - 1] : null
+  const nextLessonId = idx >= 0 && idx < orderedLessonIds.length - 1 ? orderedLessonIds[idx + 1] : null
 
   return {
     id: lessonId,

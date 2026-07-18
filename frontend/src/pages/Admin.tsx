@@ -1,9 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { assignVideoToLesson, getCourse, listCourses, listUnassignedVideos, triggerYoutubeSync } from '../lib/api'
 import type { CourseSummary, SyncResult, UnassignedVideo, UnitWithLessons } from '../lib/types'
 
 export default function Admin() {
   const [videos, setVideos] = useState<UnassignedVideo[]>([])
+  const [nextCursor, setNextCursor] = useState<string | null>(null)
+  const [loadingMore, setLoadingMore] = useState(false)
   const [courses, setCourses] = useState<CourseSummary[]>([])
   const [syncing, setSyncing] = useState(false)
   const [syncResult, setSyncResult] = useState<SyncResult | null>(null)
@@ -12,11 +14,40 @@ export default function Admin() {
   const [assigningVideoIds, setAssigningVideoIds] = useState<Set<string>>(new Set())
   const [assignNote, setAssignNote] = useState<string | null>(null)
 
+  // refreshVideos() and loadMoreVideos() can both be in flight at once (e.g.
+  // a "load more" request is still pending when assigning a video triggers a
+  // refresh) — this guards against a slower, stale response overwriting a
+  // newer one, regardless of which resolves last.
+  const videosRequestId = useRef(0)
+
   const refreshVideos = () => {
+    const requestId = ++videosRequestId.current
     setVideosError(null)
     return listUnassignedVideos()
-      .then(setVideos)
-      .catch(() => setVideosError('Could not load unassigned videos.'))
+      .then((page) => {
+        if (videosRequestId.current !== requestId) return
+        setVideos(page.videos)
+        setNextCursor(page.nextCursor)
+      })
+      .catch(() => {
+        if (videosRequestId.current === requestId) setVideosError('Could not load unassigned videos.')
+      })
+  }
+
+  const loadMoreVideos = async () => {
+    if (!nextCursor) return
+    const requestId = ++videosRequestId.current
+    setLoadingMore(true)
+    try {
+      const page = await listUnassignedVideos({ cursor: nextCursor })
+      if (videosRequestId.current !== requestId) return
+      setVideos((prev) => [...prev, ...page.videos])
+      setNextCursor(page.nextCursor)
+    } catch {
+      if (videosRequestId.current === requestId) setVideosError('Could not load more videos.')
+    } finally {
+      if (videosRequestId.current === requestId) setLoadingMore(false)
+    }
   }
 
   const refreshCourses = () => {
@@ -67,7 +98,8 @@ export default function Admin() {
       {syncResult && (
         <p className="admin-sync-result" role="status" aria-live="polite">
           Found {syncResult.channelVideosFound} video{syncResult.channelVideosFound === 1 ? '' : 's'} on the channel
-          &nbsp;({syncResult.newVideos} new, {syncResult.updatedVideos} updated).
+          &nbsp;({syncResult.newVideos} new, {syncResult.updatedVideos} updated
+          {syncResult.failedVideos > 0 ? `, ${syncResult.failedVideos} failed` : ''}).
         </p>
       )}
       {coursesError && (
@@ -87,7 +119,7 @@ export default function Admin() {
         </p>
       )}
 
-      <h2 className="admin-section-title">Unassigned videos ({videos.length})</h2>
+      <h2 className="admin-section-title">Unassigned videos (showing {videos.length})</h2>
       {assignNote && (
         <p className="admin-sync-result" role="status" aria-live="polite">
           {assignNote}
@@ -126,6 +158,11 @@ export default function Admin() {
           </div>
         ))}
       </div>
+      {nextCursor && (
+        <button className="button button-secondary" onClick={() => void loadMoreVideos()} disabled={loadingMore}>
+          {loadingMore ? 'Loading…' : 'Load more videos'}
+        </button>
+      )}
     </main>
   )
 }
