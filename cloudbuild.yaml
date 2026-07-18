@@ -31,7 +31,7 @@ steps:
       - --allow-unauthenticated
       - --service-account=safesurf-run-sa@$PROJECT_ID.iam.gserviceaccount.com
       - --set-env-vars=FIREBASE_PROJECT_ID=$PROJECT_ID,ADMIN_EMAILS=$_ADMIN_EMAILS,YOUTUBE_CHANNEL_ID=$_YOUTUBE_CHANNEL_ID,SCHEDULER_SERVICE_ACCOUNT_EMAIL=safesurf-scheduler-sa@$PROJECT_ID.iam.gserviceaccount.com,SCHEDULER_OIDC_AUDIENCE=$_SCHEDULER_OIDC_AUDIENCE,GMAIL_USER=$_GMAIL_USER
-      - --set-secrets=YOUTUBE_API_KEY=youtube-api-key:latest,GMAIL_APP_PASSWORD=gmail-app-password:latest
+      - --set-secrets=YOUTUBE_API_KEY=youtube-api-key:latest,GMAIL_APP_PASSWORD=gmail-app-password:latest,GEMINI_API_KEY=gemini-api-key:latest
 
 images:
   - $_IMAGE

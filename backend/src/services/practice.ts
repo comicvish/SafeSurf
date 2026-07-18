@@ -1,4 +1,5 @@
-import { getClaudeClient } from './claude.js'
+import { Type } from '@google/genai'
+import { getGeminiClient } from './gemini.js'
 import { db } from './firestore.js'
 import { recordPracticeCompletion } from './stats.js'
 import type {
@@ -9,7 +10,7 @@ import type {
   PracticeSubmitResult,
 } from '../types.js'
 
-const MODEL = 'claude-opus-4-8'
+const MODEL = 'gemini-flash-latest'
 const QUESTIONS_PER_PRACTICE_SESSION = 5
 const MAX_DESCRIPTION_LENGTH = 1500
 const MIN_VALID_QUESTIONS = 3
@@ -55,52 +56,41 @@ export class InvalidPracticeAnswersError extends Error {}
 export async function generatePracticeSession(lessonId: string, input: GeneratePracticeInput): Promise<void> {
   const truncatedDescription = input.videoDescription.slice(0, MAX_DESCRIPTION_LENGTH)
 
-  const client = getClaudeClient()
-  const response = await client.messages.create({
+  const client = getGeminiClient()
+  const response = await client.models.generateContent({
     model: MODEL,
-    max_tokens: 4096,
-    system:
-      'You are an instructional designer creating short, gamified practice quizzes for an educational video platform, in the spirit of Khan Academy and Duolingo. Write clear, encouraging multiple-choice questions that test understanding of the concepts covered, not trivia about the video itself. Each question has exactly 4 options with exactly one correct answer, and a one-sentence explanation of why the correct answer is right. Keep questions and options concise.',
-    messages: [
-      {
-        role: 'user',
-        content: `Generate exactly ${QUESTIONS_PER_PRACTICE_SESSION} multiple-choice practice questions for this lesson.\n\nLesson title: ${input.lessonTitle}\nLesson summary: ${input.lessonSummary}\nVideo title: ${input.videoTitle}\nVideo description: ${truncatedDescription}`,
-      },
-    ],
-    output_config: {
-      format: {
-        type: 'json_schema',
-        schema: {
-          type: 'object',
-          properties: {
-            questions: {
-              type: 'array',
-              items: {
-                type: 'object',
-                properties: {
-                  prompt: { type: 'string' },
-                  options: { type: 'array', items: { type: 'string' } },
-                  correctIndex: { type: 'integer' },
-                  explanation: { type: 'string' },
-                },
-                required: ['prompt', 'options', 'correctIndex', 'explanation'],
-                additionalProperties: false,
+    contents: `Generate exactly ${QUESTIONS_PER_PRACTICE_SESSION} multiple-choice practice questions for this lesson.\n\nLesson title: ${input.lessonTitle}\nLesson summary: ${input.lessonSummary}\nVideo title: ${input.videoTitle}\nVideo description: ${truncatedDescription}`,
+    config: {
+      systemInstruction:
+        'You are an instructional designer creating short, gamified practice quizzes for an educational video platform, in the spirit of Khan Academy and Duolingo. Write clear, encouraging multiple-choice questions that test understanding of the concepts covered, not trivia about the video itself. Each question has exactly 4 options with exactly one correct answer, and a one-sentence explanation of why the correct answer is right. Keep questions and options concise.',
+      responseMimeType: 'application/json',
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          questions: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                prompt: { type: Type.STRING },
+                options: { type: Type.ARRAY, items: { type: Type.STRING } },
+                correctIndex: { type: Type.INTEGER },
+                explanation: { type: Type.STRING },
               },
+              required: ['prompt', 'options', 'correctIndex', 'explanation'],
             },
           },
-          required: ['questions'],
-          additionalProperties: false,
         },
+        required: ['questions'],
       },
     },
   })
 
-  const textBlock = response.content.find((block) => block.type === 'text')
-  if (!textBlock || textBlock.type !== 'text') {
-    throw new Error('Claude did not return a text response for practice generation')
+  if (!response.text) {
+    throw new Error('Gemini did not return a text response for practice generation')
   }
 
-  const parsed = JSON.parse(textBlock.text) as { questions?: RawPracticeQuestion[] }
+  const parsed = JSON.parse(response.text) as { questions?: RawPracticeQuestion[] }
   const validQuestions = (parsed.questions ?? []).filter(isValidQuestion)
   if (validQuestions.length < MIN_VALID_QUESTIONS) {
     throw new Error(`Only ${validQuestions.length} valid practice questions were generated for lesson ${lessonId}`)
