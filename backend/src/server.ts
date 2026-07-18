@@ -23,6 +23,23 @@ const app = express()
 // LB's internal address, breaking IP-based rate limiting.
 app.set('trust proxy', true)
 
+// Express sends this by default, fingerprinting the backend framework to
+// anyone probing the site for free.
+app.disable('x-powered-by')
+
+// Baseline security headers with no behavioral tradeoff. Deliberately no
+// Content-Security-Policy here — this app relies on Google Sign-In popups,
+// Firebase Auth's own popup/redirect flow, and YouTube iframe embeds, and a
+// CSP tight enough to matter needs to be tuned against all three rather than
+// bolted on as a one-liner.
+app.use((_req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff')
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN')
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin')
+  res.setHeader('Strict-Transport-Security', 'max-age=15552000; includeSubDomains')
+  next()
+})
+
 app.use((req, res, next) => {
   if (req.hostname === `www.${CANONICAL_HOST}`) {
     res.redirect(301, `https://${CANONICAL_HOST}${req.originalUrl}`)
