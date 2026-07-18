@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../lib/authContext'
 import { getSignUpErrorMessage } from '../lib/authErrors'
 import GoogleSignInButton from '../components/GoogleSignInButton'
-import AppleSignInButton from '../components/AppleSignInButton'
 
 export default function Signup() {
   const { signUp } = useAuth()
@@ -34,11 +33,6 @@ export default function Signup() {
       <form className="auth-form" onSubmit={handleSubmit}>
         <GoogleSignInButton
           label="Sign up with Google"
-          onSuccess={() => navigate('/dashboard')}
-          onError={setError}
-        />
-        <AppleSignInButton
-          label="Sign up with Apple"
           onSuccess={() => navigate('/dashboard')}
           onError={setError}
         />
