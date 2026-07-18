@@ -48,7 +48,7 @@ substitutions:
   _SCHEDULER_OIDC_AUDIENCE: https://safesurf-jbxibxbqsa-uc.a.run.app/api/admin/sync-youtube
   # Firebase web config is public (not secret) — see frontend/.env.example.
   _VITE_FIREBASE_API_KEY: AIzaSyAFjBVvPpLDCfotVNoR0k3hZ2eHuPmovCM
-  _VITE_FIREBASE_AUTH_DOMAIN: safesurf-learn.firebaseapp.com
+  _VITE_FIREBASE_AUTH_DOMAIN: auth.verablock.org
   _VITE_FIREBASE_PROJECT_ID: safesurf-learn
   _VITE_FIREBASE_APP_ID: "1:230613980461:web:35b37a50763d2f000fefa4"
 

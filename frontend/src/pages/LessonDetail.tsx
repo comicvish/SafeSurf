@@ -121,9 +121,12 @@ export default function LessonDetail() {
           )}
         </div>
       ) : (
-        <p className="lesson-signin-prompt">
-          <Link to="/login">Sign in</Link> to track your progress on this lesson.
-        </p>
+        <div className="lesson-signin-prompt">
+          <p>Sign in to track your progress on this lesson.</p>
+          <Link className="button button-primary" to="/login">
+            Sign in
+          </Link>
+        </div>
       )}
 
       {practice &&
@@ -138,9 +141,12 @@ export default function LessonDetail() {
             </Link>
           </div>
         ) : (
-          <p className="lesson-signin-prompt">
-            <Link to="/login">Sign in</Link> to unlock the practice quiz for this lesson.
-          </p>
+          <div className="lesson-signin-prompt">
+            <p>Sign in to unlock the practice quiz for this lesson.</p>
+            <Link className="button button-primary" to="/login">
+              Sign in
+            </Link>
+          </div>
         ))}
 
       {practiceLoadFailed && <p className="course-load-error">Couldn't check for a practice quiz — try refreshing.</p>}

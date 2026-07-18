@@ -479,6 +479,49 @@ a {
   margin: 0;
 }
 
+.signin-prompt-dialog {
+  box-sizing: border-box;
+  width: min(440px, calc(100vw - 48px));
+  margin: auto;
+  padding: 32px;
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset, 0 24px 48px -20px rgba(10, 31, 51, 0.45);
+  color: var(--ink);
+  animation: pop-in var(--duration-base) var(--ease-out) both;
+}
+
+.signin-prompt-dialog::backdrop {
+  background: rgba(10, 31, 51, 0.55);
+  backdrop-filter: blur(2px);
+}
+
+.signin-prompt-dialog h2 {
+  font-size: clamp(22px, 2.6vw, 26px);
+  margin-bottom: 12px;
+}
+
+.signin-prompt-dialog p {
+  margin: 0 0 24px;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #52697f;
+}
+
+.signin-prompt-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.signin-prompt-actions .button {
+  flex: 1 1 auto;
+  text-align: center;
+}
+
 .featured-courses {
   padding-top: 0;
 }
@@ -951,8 +994,26 @@ footer small {
 }
 
 .lesson-signin-prompt {
-  font-size: 15px;
-  color: #52697f;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 24px;
+  padding: 20px 22px;
+  border-radius: 8px;
+  background: rgba(253, 242, 223, 0.65);
+  backdrop-filter: blur(12px) saturate(160%);
+  -webkit-backdrop-filter: blur(12px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset, 0 8px 18px -14px rgba(179, 110, 20, 0.4);
+}
+
+.lesson-signin-prompt p {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ink);
 }
 
 .auth-page {
