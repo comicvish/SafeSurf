@@ -1,6 +1,6 @@
 # 007 — Animate the hamburger icon into an X when the mobile nav opens
 
-- **Status**: TODO
+- **Status**: DONE
 - **Commit**: 066382c
 - **Severity**: MEDIUM
 - **Category**: Missed opportunity

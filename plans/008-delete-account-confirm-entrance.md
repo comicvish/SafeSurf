@@ -1,6 +1,6 @@
 # 008 — Animate the "Delete account" confirmation panel's entrance
 
-- **Status**: TODO
+- **Status**: DONE
 - **Commit**: 066382c
 - **Severity**: LOW
 - **Category**: Missed opportunity

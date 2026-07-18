@@ -17,7 +17,7 @@ export default function Header() {
         <span>VeraBlock</span>
       </Link>
       <button
-        className="menu-toggle"
+        className={menuOpen ? 'menu-toggle open' : 'menu-toggle'}
         aria-label="Toggle menu"
         aria-expanded={menuOpen}
         aria-controls="main-navigation"
