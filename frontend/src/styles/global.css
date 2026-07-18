@@ -287,7 +287,7 @@ a {
 .hero-paths {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
+  gap: 24px;
   margin-top: 40px;
   text-align: left;
 }
@@ -542,7 +542,7 @@ footer small {
 .legal-page .legal-updated {
   color: #52697f;
   font-size: 14px;
-  margin: -4px 0 28px;
+  margin: 0 0 28px;
 }
 
 .legal-page h2 {
@@ -616,15 +616,26 @@ footer small {
 
 .course-list h1,
 .course-detail h1,
-.lesson-detail h1 {
+.lesson-detail h1,
+.dashboard h1,
+.account-page h1,
+.admin-page h1,
+.legal-page h1,
+.auth-page h1 {
   font-size: clamp(32px, 4vw, 46px);
   margin-bottom: 24px;
+}
+
+/* .coming-soon spaces its children with flex `gap`, not margin — only the
+   font-size needs to match the rest of the site's h1 scale. */
+.coming-soon h1 {
+  font-size: clamp(32px, 4vw, 46px);
 }
 
 .course-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 18px;
+  gap: 24px;
   list-style: none;
   margin: 0;
   padding: 0;
@@ -773,7 +784,7 @@ footer small {
   font-size: 17px;
   color: #52697f;
   max-width: 620px;
-  margin: -10px 0 30px;
+  margin: 0 0 30px;
 }
 
 .course-detail > h1,
@@ -943,7 +954,7 @@ footer small {
 }
 
 .auth-page {
-  max-width: 380px;
+  max-width: 560px;
 }
 
 .auth-form {
@@ -1014,6 +1025,13 @@ footer small {
   margin: 0;
 }
 
+/* Admin can show two independent error messages back to back (courses
+   failed to load, videos failed to load) — give them room to read as two
+   distinct lines instead of one run-on paragraph. */
+.auth-error + .auth-error {
+  margin-top: 8px;
+}
+
 .text-link {
   border: 0;
   background: none;
@@ -1025,7 +1043,7 @@ footer small {
 
 .dashboard-user {
   color: #52697f;
-  margin: -10px 0 6px;
+  margin: 0 0 8px;
 }
 
 .account-page {
