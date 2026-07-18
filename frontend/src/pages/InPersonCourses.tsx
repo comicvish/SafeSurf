@@ -37,9 +37,6 @@ const HIGHLIGHTS = [
   'Free follow-up lessons included',
 ]
 
-const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-const SESSION_DAY_INDEX = 1 // arbitrary example day — the real day/time is scheduled by email, not fixed
-
 export default function InPersonCourses() {
   useEffect(() => {
     document.title = PAGE_TITLE
@@ -63,26 +60,14 @@ export default function InPersonCourses() {
         <p className="schedule-hero-alt-link">
           Looking for the free self-paced lessons instead? <Link to="/courses">Browse courses</Link>
         </p>
-        <div className="schedule-calendar-wrap">
-          <span className="schedule-example-badge">Example rhythm — day &amp; time are up to you</span>
-          <ul className="schedule-rhythm">
-            {CURRICULUM.map((item) => (
-              <li className="schedule-rhythm-row" key={item.week}>
-                <span className="curriculum-week-number">{item.week}</span>
-                <span className="schedule-rhythm-day">{DAY_LABELS[SESSION_DAY_INDEX]}s (example)</span>
-                <span className="schedule-cell-topic">{item.title}</span>
-              </li>
-            ))}
-          </ul>
-          <p className="schedule-calendar-note">
-            One live session a week, same day and time, for four weeks — email us and we'll schedule the exact day
-            and time around your community's calendar.
-          </p>
-        </div>
       </section>
 
       <section className="curriculum-detail section-shell">
         <h2>What each week covers</h2>
+        <p className="curriculum-detail-note">
+          One live session a week, same day and time, for four weeks — day and time are entirely up to you. Email us
+          and we'll schedule it around your community's calendar.
+        </p>
         <dl className="curriculum-detail-list">
           {CURRICULUM.map((item) => (
             <div className="curriculum-detail-row" key={item.week}>

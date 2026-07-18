@@ -88,6 +88,9 @@ export default function CourseDetail() {
 
   return (
     <main className="course-detail section-shell">
+      <Link className="back-link" to="/courses">
+        &larr; Back to courses
+      </Link>
       <h1>{course.title}</h1>
       <p className="course-description">{course.description}</p>
       {course.units.length === 0 && <p className="course-load-error">This course doesn't have any units yet.</p>}

@@ -814,21 +814,6 @@ footer small {
   margin-bottom: 14px;
 }
 
-.unit-block h2 a {
-  text-decoration: none;
-}
-
-.dashboard-unit {
-  margin-bottom: 20px;
-}
-
-.dashboard-unit-title {
-  font-size: 15px;
-  font-weight: 700;
-  color: #52697f;
-  margin: 0 0 8px;
-}
-
 .lesson-list {
   list-style: none;
   margin: 0;
@@ -911,6 +896,23 @@ footer small {
   animation: content-fade-in var(--duration-base) var(--ease-out) both;
 }
 
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--slate-deep, #34506b);
+  text-decoration: none;
+  margin-bottom: 20px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .back-link:hover {
+    color: var(--blue);
+  }
+}
+
 .lesson-nav {
   display: flex;
   justify-content: space-between;
@@ -977,6 +979,66 @@ footer small {
   gap: 6px;
   font-weight: 600;
   font-size: 16px;
+}
+
+/* Google's own brand guidelines call for a plain white surface and dark
+   neutral text — this button deliberately doesn't follow the site's glass
+   treatment, so it stays recognizable as the standard Google sign-in
+   control. */
+.google-signin-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 11px 16px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: #fff;
+  color: #3c4043;
+  font-weight: 600;
+  font-size: 15px;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset, 0 4px 10px -6px rgba(15, 44, 82, 0.2);
+  transition: transform var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out);
+}
+
+.google-signin-icon {
+  width: 18px;
+  height: 18px;
+  flex: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .google-signin-button:hover:not(:disabled) {
+    border-color: #b0b4ba;
+    background: #f8f9fa;
+  }
+}
+
+.google-signin-button:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.google-signin-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #52697f;
+  font-size: 13px;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--line);
 }
 
 .field-hint {
@@ -1290,6 +1352,57 @@ footer small {
   color: #52697f;
 }
 
+.dashboard-continue-card {
+  margin-top: 0;
+  margin-bottom: 36px;
+}
+
+.dashboard-progress-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+.dashboard-course-card {
+  display: flex;
+  flex-direction: column;
+  padding: 20px 22px;
+  border-radius: 8px;
+  background: rgba(219, 232, 246, 0.6);
+  backdrop-filter: blur(12px) saturate(160%);
+  -webkit-backdrop-filter: blur(12px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5) inset, 0 8px 18px -14px rgba(15, 44, 82, 0.3);
+}
+
+.dashboard-course-card-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.dashboard-course-card-header h2 {
+  font-size: 19px;
+}
+
+.dashboard-course-card-header span {
+  flex: none;
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  color: #52697f;
+  white-space: nowrap;
+}
+
+.dashboard-course-card .practice-progress {
+  margin-bottom: 16px;
+}
+
+.dashboard-course-card .button-secondary {
+  align-self: flex-start;
+}
+
 .practice-card {
   display: flex;
   align-items: center;
@@ -1558,6 +1671,12 @@ footer small {
   color: #34506b;
 }
 
+.curriculum-detail-note {
+  font-size: 14px;
+  color: #52697f;
+  margin: 0 0 20px;
+}
+
 .curriculum-detail-list {
   margin: 0;
   padding: 0;
@@ -1630,68 +1749,6 @@ footer small {
 .highlights-band .inline-highlights {
   margin-top: 0;
   margin-bottom: 28px;
-}
-
-.schedule-calendar-wrap {
-  margin-top: 36px;
-}
-
-.schedule-example-badge {
-  display: inline-block;
-  font-family: 'DM Mono', monospace;
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-  color: var(--navy);
-  background: linear-gradient(180deg, #d6e8f5 0%, var(--sky) 100%);
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset;
-  padding: 6px 14px;
-  border-radius: 999px;
-  margin-bottom: 14px;
-}
-
-.schedule-calendar-note {
-  margin: 16px 0 0;
-  font-size: 14px;
-  color: #52697f;
-}
-
-.schedule-rhythm {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.schedule-rhythm-row {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 16px 20px;
-  background: rgba(255, 255, 255, 0.6);
-  backdrop-filter: blur(12px) saturate(160%);
-  -webkit-backdrop-filter: blur(12px) saturate(160%);
-  border: 1px solid rgba(255, 255, 255, 0.75);
-  border-radius: 10px;
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset, 0 8px 18px -14px rgba(15, 44, 82, 0.3);
-}
-
-.schedule-rhythm-day {
-  flex: none;
-  font-family: 'DM Mono', monospace;
-  font-size: 12px;
-  text-transform: uppercase;
-  color: #52697f;
-  white-space: nowrap;
-}
-
-.schedule-cell-topic {
-  font-family: Fraunces, Georgia, serif;
-  font-weight: 700;
-  font-size: 15px;
-  line-height: 1.2;
 }
 
 .community-cta {
@@ -1908,11 +1965,6 @@ footer button:focus-visible,
   .curriculum-week {
     flex-direction: column;
     gap: 10px;
-  }
-
-  .schedule-rhythm-row {
-    flex-wrap: wrap;
-    gap: 8px 14px;
   }
 
   footer {

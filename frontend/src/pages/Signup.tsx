@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../lib/authContext'
 import { getSignUpErrorMessage } from '../lib/authErrors'
+import GoogleSignInButton from '../components/GoogleSignInButton'
 
 export default function Signup() {
   const { signUp } = useAuth()
@@ -30,6 +31,14 @@ export default function Signup() {
     <main className="auth-page section-shell">
       <h1>Create an account</h1>
       <form className="auth-form" onSubmit={handleSubmit}>
+        <GoogleSignInButton
+          label="Sign up with Google"
+          onSuccess={() => navigate('/dashboard')}
+          onError={setError}
+        />
+        <div className="auth-divider" role="separator">
+          or sign up with email
+        </div>
         <label>
           Email
           <input

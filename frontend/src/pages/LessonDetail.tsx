@@ -86,6 +86,9 @@ export default function LessonDetail() {
 
   return (
     <main className="lesson-detail section-shell">
+      <Link className="back-link" to={`/courses/${lesson.course.id}`}>
+        &larr; Back to {lesson.course.title}
+      </Link>
       <p className="eyebrow">
         <span aria-hidden="true"></span>
         <Link to={`/courses/${lesson.course.id}`}>{lesson.course.title}</Link> · {lesson.unit.title}

@@ -1,19 +1,27 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import {
   createUserWithEmailAndPassword,
+  GoogleAuthProvider,
   onAuthStateChanged,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
+  signInWithPopup,
   signOut,
   type User,
 } from 'firebase/auth'
 import { auth } from './firebaseClient'
+
+// Always ask which Google account to use, rather than silently reusing
+// whichever one the browser last picked — clearer for a shared/family device.
+const googleProvider = new GoogleAuthProvider()
+googleProvider.setCustomParameters({ prompt: 'select_account' })
 
 interface AuthContextValue {
   user: User | null
   loading: boolean
   signUp: (email: string, password: string) => Promise<void>
   signIn: (email: string, password: string) => Promise<void>
+  signInWithGoogle: () => Promise<void>
   signOutUser: () => Promise<void>
   resetPassword: (email: string) => Promise<void>
 }
@@ -39,6 +47,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     signIn: async (email, password) => {
       await signInWithEmailAndPassword(auth, email, password)
+    },
+    signInWithGoogle: async () => {
+      await signInWithPopup(auth, googleProvider)
     },
     signOutUser: () => signOut(auth),
     resetPassword: (email) => sendPasswordResetEmail(auth, email),
