@@ -135,6 +135,7 @@ export default function LessonDetail() {
             <div>
               <strong>Practice this lesson</strong>
               <p>{practice.questions.length} questions · earn XP and build your streak</p>
+              <p className="practice-card-ai-note">Questions for this lesson were generated with AI.</p>
             </div>
             <Link className="button button-primary" to={`/lessons/${lesson.id}/practice`}>
               Start practice

@@ -1534,6 +1534,11 @@ footer small {
   color: #52697f;
 }
 
+.practice-card p.practice-card-ai-note {
+  margin-top: 8px;
+  font-size: 13px;
+}
+
 .practice-page {
   max-width: 640px;
 }
