@@ -51,6 +51,10 @@ body {
   }
 }
 
+.page-transition {
+  animation: content-fade-in var(--duration-base) var(--ease-out) both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -75,7 +79,8 @@ body {
   .lesson-complete-badge,
   .admin-assign-form,
   .practice-result,
-  .account-delete-confirm {
+  .account-delete-confirm,
+  .page-transition {
     animation-name: reduced-motion-fade !important;
     animation-duration: 150ms !important;
   }
