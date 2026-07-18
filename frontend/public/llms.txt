@@ -1,0 +1,16 @@
+# VeraBlock
+
+> VeraBlock teaches practical internet-safety skills to seniors and the general public through free, structured video lessons, AI-generated practice quizzes, and a real in-person course for senior living communities.
+
+VeraBlock helps people recognize and defend against scam calls, phishing, and AI-generated deepfakes (voices, images, and video) before those threats cause harm. The core product is free, self-paced video courses organized into units and lessons, paired with lightweight XP and streak progress tracking. Seniors are the primary audience, many encountering this material for the first time through a senior living community's in-person course before finding the free online lessons; a secondary audience of general-public learners uses the same free courses directly. VeraBlock is not a corporate cybersecurity vendor and not gamified edtech — it reads as a knowledgeable, patient neighbor explaining something, not a vendor selling protection.
+
+## Courses
+
+- [Courses](https://verablock.org/courses): Browse all free video courses, organized by unit and lesson. No account required to start watching.
+- [In-Person Courses](https://verablock.org/in-person-courses): A live, four-week course delivered on-site at senior living communities, covering spam calls, AI voices, and AI-generated images and video, with a request form for communities interested in scheduling it.
+
+## About
+
+- [Accessibility Statement](https://verablock.org/accessibility): VeraBlock's accessibility commitments (WCAG 2.1 AA floor, tuned for a senior-heavy audience) and how to report an issue.
+- [Privacy Policy](https://verablock.org/privacy): What data VeraBlock collects and how it's used.
+- [Terms of Service](https://verablock.org/terms): Terms for using VeraBlock's free courses and in-person program.
