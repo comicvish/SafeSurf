@@ -62,6 +62,23 @@ export function getGoogleSignInErrorMessage(err: unknown): string {
   }
 }
 
+export function getAppleSignInErrorMessage(err: unknown): string {
+  switch (getErrorCode(err)) {
+    case 'auth/popup-blocked':
+      return 'Your browser blocked the sign-in window. Allow pop-ups for this site and try again.'
+    case 'auth/account-exists-with-different-credential':
+      return 'An account with that email already exists. Sign in with the method you used to create it instead.'
+    case 'auth/operation-not-allowed':
+      return 'Apple sign-in is not available yet. Please use another sign-in method.'
+    case 'auth/too-many-requests':
+      return 'Too many attempts. Please wait a few minutes and try again.'
+    case 'auth/network-request-failed':
+      return "We couldn't reach the server. Check your connection and try again."
+    default:
+      return 'Could not sign in with Apple. Please try again.'
+  }
+}
+
 // Callers should treat `auth/user-not-found` as success, not call this with
 // it — see Login.tsx's reset handler. Surfacing "no account with that email"
 // here would let an attacker enumerate which emails are registered.

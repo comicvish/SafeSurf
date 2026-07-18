@@ -1025,6 +1025,46 @@ footer small {
   cursor: not-allowed;
 }
 
+.apple-signin-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 1px solid #000;
+  border-radius: 8px;
+  background: #000;
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform var(--duration-fast) var(--ease-out), background-color var(--duration-fast) var(--ease-out);
+}
+
+.apple-signin-icon {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  fill: currentColor;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .apple-signin-button:hover:not(:disabled) {
+    background: #252525;
+  }
+}
+
+.apple-signin-button:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.apple-signin-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .auth-divider {
   display: flex;
   align-items: center;

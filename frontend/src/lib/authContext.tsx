@@ -3,6 +3,7 @@ import {
   createUserWithEmailAndPassword,
   GoogleAuthProvider,
   onAuthStateChanged,
+  OAuthProvider,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signInWithPopup,
@@ -16,12 +17,19 @@ import { auth } from './firebaseClient'
 const googleProvider = new GoogleAuthProvider()
 googleProvider.setCustomParameters({ prompt: 'select_account' })
 
+const appleProvider = new OAuthProvider('apple.com')
+// Request these explicitly so this continues to work if Firebase is later
+// configured to allow multiple accounts with the same email address.
+appleProvider.addScope('email')
+appleProvider.addScope('name')
+
 interface AuthContextValue {
   user: User | null
   loading: boolean
   signUp: (email: string, password: string) => Promise<void>
   signIn: (email: string, password: string) => Promise<void>
   signInWithGoogle: () => Promise<void>
+  signInWithApple: () => Promise<void>
   signOutUser: () => Promise<void>
   resetPassword: (email: string) => Promise<void>
 }
@@ -50,6 +58,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     signInWithGoogle: async () => {
       await signInWithPopup(auth, googleProvider)
+    },
+    signInWithApple: async () => {
+      await signInWithPopup(auth, appleProvider)
     },
     signOutUser: () => signOut(auth),
     resetPassword: (email) => sendPasswordResetEmail(auth, email),
