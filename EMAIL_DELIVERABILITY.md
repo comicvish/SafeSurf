@@ -1,5 +1,26 @@
 # Fixing Firebase Auth email deliverability (spam classification)
 
+## Status: interim fix live (2026-07-18)
+
+Firebase Auth's transactional emails (password reset, verify email, etc.) now send via **custom
+SMTP through the existing `verablockeducators@gmail.com` account** (the same one already used for
+in-person-course inquiry emails), wired up via the Identity Toolkit Admin API
+(`notification.sendEmail.method = CUSTOM_SMTP`, `smtp.host = smtp.gmail.com`). This uses Gmail's
+own authenticated sending infrastructure (real SPF/DKIM under `gmail.com`), which should land in
+the inbox far more reliably than the previous shared `firebaseapp.com` sender — with no new signup
+or DNS changes required.
+
+**Known limits of this interim fix, worth revisiting later:**
+- Emails come from `verablockeducators@gmail.com`, not `noreply@verablock.org` — less polished
+  branding, and the display name shows as "VeraBlock" but the address itself is a personal Gmail.
+- Consumer Gmail accounts have a **~500 email/day sending cap**. Fine for current volume; would
+  need Option B below before any real growth in signups/password resets.
+- Google's abuse detection can occasionally flag a personal Gmail account used as an automated
+  SMTP relay from a server. Low risk at current volume, but worth knowing.
+
+Option B (a real transactional provider on `verablock.org`) below remains the correct long-term
+fix once it's worth the setup effort.
+
 ## Why this is happening
 
 Every Firebase Auth email (password reset, email verification, etc.) is currently sent from
