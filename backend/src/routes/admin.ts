@@ -3,6 +3,7 @@ import { verifyFirebaseToken } from '../middleware/verifyFirebaseToken.js'
 import { requireAdmin, isAdminEmail } from '../middleware/requireAdmin.js'
 import { verifySchedulerOrAdmin } from '../middleware/verifySchedulerOrAdmin.js'
 import { asyncHandler } from '../middleware/asyncHandler.js'
+import { adminMutationLimiter, authAttemptLimiter, authenticatedLimiter, syncLimiter } from '../middleware/rateLimits.js'
 import { syncYoutubeVideos } from '../services/youtube.js'
 import { listUnassignedVideos } from '../services/videos.js'
 import { createLesson } from '../services/content.js'
@@ -12,7 +13,9 @@ export const adminRouter = Router()
 
 adminRouter.get(
   '/admin/me',
+  authAttemptLimiter,
   verifyFirebaseToken,
+  authenticatedLimiter,
   asyncHandler(async (_req, res) => {
     res.json({ isAdmin: isAdminEmail(res.locals.email) })
   }),
@@ -20,7 +23,9 @@ adminRouter.get(
 
 adminRouter.post(
   '/admin/sync-youtube',
+  authAttemptLimiter,
   verifySchedulerOrAdmin,
+  syncLimiter,
   asyncHandler(async (_req, res) => {
     const result = await syncYoutubeVideos()
     res.json({ result })
@@ -29,18 +34,25 @@ adminRouter.post(
 
 adminRouter.get(
   '/admin/videos',
+  authAttemptLimiter,
   verifyFirebaseToken,
   requireAdmin,
-  asyncHandler(async (_req, res) => {
-    const videos = await listUnassignedVideos()
-    res.json({ videos })
+  authenticatedLimiter,
+  asyncHandler(async (req, res) => {
+    const limitParam = typeof req.query.limit === 'string' ? Number(req.query.limit) : undefined
+    const limit = limitParam !== undefined && Number.isFinite(limitParam) ? limitParam : undefined
+    const cursor = typeof req.query.cursor === 'string' ? req.query.cursor : undefined
+    const page = await listUnassignedVideos({ limit, cursor })
+    res.json(page)
   }),
 )
 
 adminRouter.post(
   '/admin/lessons',
+  authAttemptLimiter,
   verifyFirebaseToken,
   requireAdmin,
+  adminMutationLimiter,
   asyncHandler(async (req, res) => {
     const body = req.body as { unitId?: unknown; videoId?: unknown; order?: unknown; summary?: unknown }
     if (

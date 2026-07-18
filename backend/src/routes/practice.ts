@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import { verifyFirebaseToken } from '../middleware/verifyFirebaseToken.js'
 import { asyncHandler } from '../middleware/asyncHandler.js'
+import { authAttemptLimiter, authenticatedLimiter, publicReadLimiter } from '../middleware/rateLimits.js'
 import {
   getPracticeSession,
   getQuestionAnswer,
@@ -13,6 +14,7 @@ export const practiceRouter = Router()
 
 practiceRouter.get(
   '/lessons/:lessonId/practice',
+  publicReadLimiter,
   asyncHandler(async (req, res) => {
     const practice = await getPracticeSession(req.params.lessonId)
     if (!practice) {
@@ -27,7 +29,9 @@ practiceRouter.get(
 // the frontend's ProtectedRoute gate on the practice page itself.
 practiceRouter.get(
   '/lessons/:lessonId/practice/questions/:questionId/answer',
+  authAttemptLimiter,
   verifyFirebaseToken,
+  authenticatedLimiter,
   asyncHandler(async (req, res) => {
     const answer = await getQuestionAnswer(req.params.lessonId, req.params.questionId)
     if (!answer) {
@@ -40,7 +44,9 @@ practiceRouter.get(
 
 practiceRouter.post(
   '/lessons/:lessonId/practice/submit',
+  authAttemptLimiter,
   verifyFirebaseToken,
+  authenticatedLimiter,
   asyncHandler(async (req, res) => {
     const body = req.body as { answers?: unknown }
     if (!Array.isArray(body.answers) || !body.answers.every((a) => typeof a === 'number')) {

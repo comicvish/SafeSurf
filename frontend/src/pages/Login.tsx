@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../lib/authContext'
-import { getPasswordResetErrorMessage, getSignInErrorMessage } from '../lib/authErrors'
+import { getErrorCode, getPasswordResetErrorMessage, getSignInErrorMessage } from '../lib/authErrors'
 
 export default function Login() {
   const { signIn, resetPassword } = useAuth()
@@ -38,6 +38,13 @@ export default function Login() {
       await resetPassword(email)
       setResetStatus('sent')
     } catch (err) {
+      // A nonexistent account gets the exact same "sent" UI as a real one —
+      // showing a distinct error here would let someone enumerate which
+      // emails have accounts by watching which ones "fail."
+      if (getErrorCode(err) === 'auth/user-not-found') {
+        setResetStatus('sent')
+        return
+      }
       setResetStatus('error')
       setResetError(getPasswordResetErrorMessage(err))
     }

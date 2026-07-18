@@ -1,4 +1,4 @@
-function codeOf(err: unknown): string {
+export function getErrorCode(err: unknown): string {
   if (err && typeof err === 'object' && 'code' in err && typeof (err as { code: unknown }).code === 'string') {
     return (err as { code: string }).code
   }
@@ -6,14 +6,16 @@ function codeOf(err: unknown): string {
 }
 
 export function getSignInErrorMessage(err: unknown): string {
-  switch (codeOf(err)) {
+  switch (getErrorCode(err)) {
+    // Deliberately identical for "no account" and "wrong password" — a
+    // distinct message for either lets an attacker enumerate which emails
+    // have accounts. One generic message for both, same as most sign-in
+    // forms use.
     case 'auth/invalid-email':
-      return "That email address doesn't look right. Check for typos and try again."
     case 'auth/user-not-found':
-      return "We couldn't find an account with that email. Check the address, or sign up instead."
     case 'auth/wrong-password':
     case 'auth/invalid-credential':
-      return "Email or password doesn't match. Check both, or reset your password below."
+      return 'Incorrect email or password. Check both and try again.'
     case 'auth/too-many-requests':
       return 'Too many attempts. Please wait a few minutes and try again.'
     case 'auth/network-request-failed':
@@ -24,13 +26,14 @@ export function getSignInErrorMessage(err: unknown): string {
 }
 
 export function getSignUpErrorMessage(err: unknown): string {
-  switch (codeOf(err)) {
+  switch (getErrorCode(err)) {
     case 'auth/email-already-in-use':
       return 'An account with that email already exists. Try signing in instead.'
     case 'auth/invalid-email':
       return "That email address doesn't look right. Check for typos and try again."
     case 'auth/weak-password':
-      return 'Password needs at least 6 characters.'
+    case 'auth/password-does-not-meet-requirements':
+      return 'Password needs at least 8 characters, with an uppercase letter, a lowercase letter, and a number.'
     case 'auth/too-many-requests':
       return 'Too many attempts. Please wait a few minutes and try again.'
     case 'auth/network-request-failed':
@@ -40,12 +43,13 @@ export function getSignUpErrorMessage(err: unknown): string {
   }
 }
 
+// Callers should treat `auth/user-not-found` as success, not call this with
+// it — see Login.tsx's reset handler. Surfacing "no account with that email"
+// here would let an attacker enumerate which emails are registered.
 export function getPasswordResetErrorMessage(err: unknown): string {
-  switch (codeOf(err)) {
+  switch (getErrorCode(err)) {
     case 'auth/invalid-email':
       return "That email address doesn't look right. Check for typos and try again."
-    case 'auth/user-not-found':
-      return "We couldn't find an account with that email."
     case 'auth/too-many-requests':
       return 'Too many attempts. Please wait a few minutes and try again.'
     case 'auth/network-request-failed':

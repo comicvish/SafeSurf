@@ -42,14 +42,14 @@ export default function Signup() {
           />
         </label>
         <label>
-          Password <span className="field-hint">(at least 6 characters)</span>
+          Password <span className="field-hint">(at least 8 characters, with an uppercase letter, a lowercase letter, and a number)</span>
           <div className="password-field">
             <input
               type={showPassword ? 'text' : 'password'}
               name="new-password"
               autoComplete="new-password"
               required
-              minLength={6}
+              minLength={8}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />

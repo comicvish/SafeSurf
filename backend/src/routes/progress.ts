@@ -1,13 +1,16 @@
 import { Router } from 'express'
 import { verifyFirebaseToken } from '../middleware/verifyFirebaseToken.js'
 import { asyncHandler } from '../middleware/asyncHandler.js'
+import { authAttemptLimiter, authenticatedLimiter } from '../middleware/rateLimits.js'
 import { getProgress, setLessonComplete } from '../services/progress.js'
 
 export const progressRouter = Router()
 
 progressRouter.get(
   '/progress',
+  authAttemptLimiter,
   verifyFirebaseToken,
+  authenticatedLimiter,
   asyncHandler(async (_req, res) => {
     const completedLessonIds = await getProgress(res.locals.uid)
     res.json({ completedLessonIds })
@@ -16,7 +19,9 @@ progressRouter.get(
 
 progressRouter.put(
   '/progress/:lessonId',
+  authAttemptLimiter,
   verifyFirebaseToken,
+  authenticatedLimiter,
   asyncHandler(async (req, res) => {
     const completed = (req.body as { completed?: unknown } | undefined)?.completed
     if (typeof completed !== 'boolean') {
