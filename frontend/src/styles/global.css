@@ -163,8 +163,13 @@ a {
 .site-header nav {
   display: flex;
   align-items: center;
-  gap: 32px;
   margin-left: auto;
+}
+
+.site-header nav .nav-inner {
+  display: flex;
+  align-items: center;
+  gap: 32px;
 }
 
 .site-header nav a {
