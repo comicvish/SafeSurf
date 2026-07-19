@@ -2,19 +2,6 @@ import { useEffect, useRef, useState } from 'react'
 import { assignVideoToLesson, getCourse, listCourses, listUnassignedVideos, triggerYoutubeSync } from '../lib/api'
 import type { CourseSummary, SyncResult, UnassignedVideo, UnitWithLessons } from '../lib/types'
 
-function describeAssignResult(practiceGenerated: boolean, instagramPosted: boolean): string {
-  if (practiceGenerated && instagramPosted) {
-    return 'Lesson created, a practice quiz was generated, and it was posted to Instagram.'
-  }
-  if (practiceGenerated && !instagramPosted) {
-    return "Lesson created and a practice quiz was generated. It wasn't posted to Instagram — check the server logs."
-  }
-  if (!practiceGenerated && instagramPosted) {
-    return 'Lesson created and posted to Instagram, but the practice quiz could not be generated — check the server logs.'
-  }
-  return 'Lesson created, but neither the practice quiz nor the Instagram post succeeded — check the server logs.'
-}
-
 export default function Admin() {
   const [videos, setVideos] = useState<UnassignedVideo[]>([])
   const [nextCursor, setNextCursor] = useState<string | null>(null)
@@ -151,9 +138,13 @@ export default function Admin() {
                 <AssignForm
                   video={video}
                   courses={courses}
-                  onDone={(practiceGenerated, instagramPosted) => {
+                  onDone={(practiceGenerated) => {
                     closeAssignForm(video.id)
-                    setAssignNote(describeAssignResult(practiceGenerated, instagramPosted))
+                    setAssignNote(
+                      practiceGenerated
+                        ? 'Lesson created and a practice quiz was generated.'
+                        : 'Lesson created, but the practice quiz could not be generated — check the server logs.',
+                    )
                     void refreshVideos()
                   }}
                   onCancel={() => closeAssignForm(video.id)}
@@ -184,7 +175,7 @@ function AssignForm({
 }: {
   video: UnassignedVideo
   courses: CourseSummary[]
-  onDone: (practiceGenerated: boolean, instagramPosted: boolean) => void
+  onDone: (practiceGenerated: boolean) => void
   onCancel: () => void
 }) {
   const [courseId, setCourseId] = useState('')
@@ -232,7 +223,7 @@ function AssignForm({
     setError(null)
     try {
       const result = await assignVideoToLesson({ unitId, videoId: video.id, order, summary })
-      onDone(result.practiceGenerated, result.instagramPosted)
+      onDone(result.practiceGenerated)
     } catch {
       setError('Could not assign this video.')
     } finally {
