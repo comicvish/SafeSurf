@@ -1,6 +1,6 @@
 import nodemailer, { type Transporter } from 'nodemailer'
 
-const CONTACT_EMAIL = 'verablockeducators@gmail.com'
+const CONTACT_EMAIL = 'support@verablock.org'
 
 let transporter: Transporter | null = null
 

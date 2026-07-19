@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 
 const PAGE_TITLE = 'Terms of Service | VeraBlock'
 const DEFAULT_TITLE = 'VeraBlock | Learn to stay safe online'
-const CONTACT_EMAIL = 'verablockeducators@gmail.com'
+const CONTACT_EMAIL = 'support@verablock.org'
 
 export default function TermsOfService() {
   useEffect(() => {

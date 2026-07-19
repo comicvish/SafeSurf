@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 
 const PAGE_TITLE = 'Accessibility | VeraBlock'
 const DEFAULT_TITLE = 'VeraBlock | Learn to stay safe online'
-const CONTACT_EMAIL = 'verablockeducators@gmail.com'
+const CONTACT_EMAIL = 'support@verablock.org'
 const LAST_UPDATED = 'July 17, 2026'
 
 export default function AccessibilityStatement() {
