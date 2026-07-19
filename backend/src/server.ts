@@ -11,11 +11,20 @@ import { practiceRouter } from './routes/practice.js'
 import { statsRouter } from './routes/stats.js'
 import { inquiriesRouter } from './routes/inquiries.js'
 import { accountRouter } from './routes/account.js'
+import { listCourseDetails } from './services/content.js'
+import { asyncHandler } from './middleware/asyncHandler.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const frontendDist = path.join(__dirname, '../../frontend/dist')
 const port = Number(process.env.PORT) || 8080
 const CANONICAL_HOST = 'verablock.org'
+const SITE_ORIGIN = `https://${CANONICAL_HOST}`
+
+const sitemapStaticPaths = ['/', '/courses', '/in-person-courses', '/privacy', '/terms', '/accessibility']
+
+function sitemapUrl(pathname: string): string {
+  return `${SITE_ORIGIN}${pathname}`
+}
 
 const app = express()
 
@@ -64,6 +73,31 @@ app.use('/api', accountRouter)
 app.use('/api', (_req, res) => {
   res.status(404).json({ error: 'Not found' })
 })
+
+// Keep the sitemap tied to the live curriculum: newly created courses and
+// lessons appear the next time Google requests this URL, with no manual XML
+// maintenance required. Private account/admin/practice routes stay excluded.
+app.get(
+  '/sitemap.xml',
+  asyncHandler(async (_req, res) => {
+    const courses = await listCourseDetails()
+    const urls = [
+      ...sitemapStaticPaths.map(sitemapUrl),
+      ...courses.flatMap((course) => [
+        sitemapUrl(`/courses/${encodeURIComponent(course.id)}`),
+        ...course.units.flatMap((unit) =>
+          unit.lessons.map((lesson) => sitemapUrl(`/lessons/${encodeURIComponent(lesson.id)}`)),
+        ),
+      ]),
+    ]
+
+    const entries = urls.map((url) => `  <url><loc>${url}</loc></url>`).join('\n')
+    res
+      .type('application/xml')
+      .set('Cache-Control', 'public, max-age=300')
+      .send(`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${entries}\n</urlset>\n`)
+  }),
+)
 
 app.use(express.static(frontendDist))
 
