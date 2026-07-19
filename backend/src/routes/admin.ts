@@ -8,6 +8,7 @@ import { syncYoutubeVideos } from '../services/youtube.js'
 import { listUnassignedVideos } from '../services/videos.js'
 import { createLesson } from '../services/content.js'
 import { generatePracticeSession } from '../services/practice.js'
+import { generateInstagramCaption, isInstagramConfigured, publishInstagramPost } from '../services/instagram.js'
 
 export const adminRouter = Router()
 
@@ -68,7 +69,7 @@ adminRouter.post(
       res.status(400).json({ error: 'unitId, videoId, order, and summary are required' })
       return
     }
-    const { lessonId, video } = await createLesson({
+    const { lessonId, video, courseTitle, unitTitle } = await createLesson({
       unitId: body.unitId,
       videoId: body.videoId,
       order: body.order,
@@ -88,6 +89,24 @@ adminRouter.post(
       console.error(`Practice generation failed for lesson ${lessonId}`, err)
     }
 
-    res.status(201).json({ lessonId, practiceGenerated })
+    let instagramPosted = true
+    if (isInstagramConfigured()) {
+      try {
+        const caption = await generateInstagramCaption({
+          lessonTitle: video.title,
+          courseTitle,
+          unitTitle,
+          lessonSummary: body.summary,
+        })
+        await publishInstagramPost({ imageUrl: video.thumbnailUrl, caption })
+      } catch (err) {
+        instagramPosted = false
+        console.error(`Instagram post failed for lesson ${lessonId}`, err)
+      }
+    } else {
+      instagramPosted = false
+    }
+
+    res.status(201).json({ lessonId, practiceGenerated, instagramPosted })
   }),
 )

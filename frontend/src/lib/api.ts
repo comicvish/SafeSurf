@@ -80,7 +80,7 @@ export async function assignVideoToLesson(input: {
   videoId: string
   order: number
   summary: string
-}): Promise<{ practiceGenerated: boolean }> {
+}): Promise<{ practiceGenerated: boolean; instagramPosted: boolean }> {
   return getJson('/api/admin/lessons', {
     method: 'POST',
     headers: { ...(await authHeaders()), 'Content-Type': 'application/json' },

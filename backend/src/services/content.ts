@@ -17,7 +17,12 @@ export async function createLesson(input: {
   videoId: string
   order: number
   summary: string
-}): Promise<{ lessonId: string; video: { title: string; description: string } }> {
+}): Promise<{
+  lessonId: string
+  video: { title: string; description: string; thumbnailUrl: string; youtubeVideoId: string }
+  courseTitle: string
+  unitTitle: string
+}> {
   const unitRef = db.collection('units').doc(input.unitId)
   const videoRef = db.collection('videos').doc(input.videoId)
   const lessonRef = db.collection('lessons').doc()
@@ -25,7 +30,7 @@ export async function createLesson(input: {
   // Reading the video/unit, creating the lesson, and claiming the video all
   // happen in one transaction so a lesson can never be created against a
   // video that's already assigned (or left half-claimed by a crash).
-  const video = await db.runTransaction(async (tx) => {
+  const { video, unit } = await db.runTransaction(async (tx) => {
     const [unitSnap, videoSnap] = await Promise.all([tx.get(unitRef), tx.get(videoRef)])
     if (!unitSnap.exists) throw new Error('Unit not found')
     if (!videoSnap.exists) throw new Error('Video not found')
@@ -39,10 +44,23 @@ export async function createLesson(input: {
       summary: input.summary,
     } satisfies LessonDoc)
     tx.update(videoRef, { status: 'assigned' })
-    return videoData
+    return { video: videoData, unit: unitSnap.data() as UnitDoc }
   })
 
-  return { lessonId: lessonRef.id, video: { title: video.title, description: video.description } }
+  const courseSnap = await db.collection('courses').doc(unit.courseId).get()
+  const courseTitle = courseSnap.exists ? (courseSnap.data() as CourseDoc).title : ''
+
+  return {
+    lessonId: lessonRef.id,
+    video: {
+      title: video.title,
+      description: video.description,
+      thumbnailUrl: video.thumbnailUrl,
+      youtubeVideoId: video.youtubeVideoId,
+    },
+    courseTitle,
+    unitTitle: unit.title,
+  }
 }
 
 // Lists courses with unit/lesson *counts* only — used by the public course
