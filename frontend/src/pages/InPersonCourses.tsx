@@ -2,7 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { sendInquiry } from '../lib/api'
 
-const CONTACT_EMAIL = 'support@verablock.org'
+const CONTACT_EMAIL = 'hello@verablock.org'
 const PAGE_TITLE = 'In-Person Courses | VeraBlock'
 const DEFAULT_TITLE = 'VeraBlock | Learn to stay safe online'
 
