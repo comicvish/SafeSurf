@@ -1,25 +1,20 @@
 # Fixing Firebase Auth email deliverability (spam classification)
 
-## Status: interim fix live (2026-07-18)
+## Status: fixed (2026-07-18)
 
-Firebase Auth's transactional emails (password reset, verify email, etc.) now send via **custom
-SMTP through the existing `verablockeducators@gmail.com` account** (the same one already used for
-in-person-course inquiry emails), wired up via the Identity Toolkit Admin API
-(`notification.sendEmail.method = CUSTOM_SMTP`, `smtp.host = smtp.gmail.com`). This uses Gmail's
-own authenticated sending infrastructure (real SPF/DKIM under `gmail.com`), which should land in
-the inbox far more reliably than the previous shared `firebaseapp.com` sender — with no new signup
-or DNS changes required.
+Firebase Auth's transactional emails (password reset, verify email, etc.) now send via **Postmark**,
+with `verablock.org` verified as the sending domain (DKIM + Return-Path records live in Cloudflare
+DNS). Wired up via the Identity Toolkit Admin API
+(`notification.sendEmail.method = CUSTOM_SMTP`, `smtp.host = smtp.postmarkapp.com`,
+`senderEmail = "VeraBlock <noreply@verablock.org>"`). Confirmed working with a real end-to-end test
+send before switching the live config over.
 
-**Known limits of this interim fix, worth revisiting later:**
-- Emails come from `verablockeducators@gmail.com`, not `noreply@verablock.org` — less polished
-  branding, and the display name shows as "VeraBlock" but the address itself is a personal Gmail.
-- Consumer Gmail accounts have a **~500 email/day sending cap**. Fine for current volume; would
-  need Option B below before any real growth in signups/password resets.
-- Google's abuse detection can occasionally flag a personal Gmail account used as an automated
-  SMTP relay from a server. Low risk at current volume, but worth knowing.
+This supersedes an earlier interim fix (routing through the personal
+`verablockeducators@gmail.com` account's SMTP) that was live for a few hours on the same day —
+that interim step is why the git history has two email-related commits close together.
 
-Option B (a real transactional provider on `verablock.org`) below remains the correct long-term
-fix once it's worth the setup effort.
+Postmark's free tier (100 emails/month, no expiration) covers current volume with room to spare;
+see the pricing note in Option B below if volume ever grows past that.
 
 ## Why this is happening
 
@@ -38,11 +33,10 @@ to verify the email is legitimate. Combined with the generic `noreply@` sender a
 volume of mail from that domain (all Firebase projects that haven't customized it), it reads as a
 textbook spam pattern to Gmail's filters.
 
-There is no code fix for this — it's entirely a matter of authenticated sending infrastructure and
-DNS. This can't be done from here: it requires DNS access to `verablock.org` (a domain registrar
-or DNS host login) that I don't have.
+There was no code fix for this — it was entirely a matter of authenticated sending infrastructure
+and DNS, which is why this took DNS access (now available via Cloudflare) to actually resolve.
 
-## The real fix, in order
+## The fix that was applied
 
 ### Option A — Custom domain for Firebase's own email action links (partial fix, do this regardless)
 
@@ -79,25 +73,20 @@ Pick one:
    instead of a plain Gmail one, and used for Firebase Auth's config rather than the backend's own
    SMTP call.
 
-### Minimum concrete steps once a provider is chosen (example: Postmark)
+### What was actually done
 
-1. Sign up, add `verablock.org` as a sending domain.
-2. Add the SPF and DKIM TXT/CNAME records Postmark gives you to `verablock.org`'s DNS zone.
-3. Wait for verification (usually minutes to a few hours for DNS propagation).
-4. Create an SMTP token in Postmark.
-5. Firebase Console → Authentication → Templates → SMTP settings:
-   - Host: `smtp.postmarkapp.com` (or your provider's SMTP host)
-   - Port: `587`
-   - Username / Password: the SMTP token Postmark gives you
-   - From address: `noreply@verablock.org` (must match the verified sending domain)
-6. Send a real test password reset and confirm it lands in the inbox, not spam.
+1. Signed up for Postmark, created a Server named "VeraBlock".
+2. Added `verablock.org` as a sending domain (Sender Signatures → Add Domain).
+3. Added the DKIM TXT record and Return-Path CNAME (`pm_bounces` → `pm.mtasv.net`) Postmark
+   generated to `verablock.org`'s DNS zone in Cloudflare — CNAME set to DNS-only (not proxied),
+   same gotcha hit earlier with `auth.verablock.org`.
+4. Verified with a real end-to-end SMTP test send (`noreply@verablock.org` → a real inbox) before
+   touching the live Firebase config.
+5. Wired Firebase Auth's custom SMTP settings via the Identity Toolkit Admin API — no Console
+   click-through needed, same mechanism used for the interim Gmail fix.
 
-### What I can do once DNS access is available
+### If email volume ever outgrows Postmark's free tier
 
-If someone gets access to `verablock.org`'s DNS (or shares the records with me to relay), I can:
-- Help pick and configure the provider.
-- Draft the exact DNS records to add.
-- Wire up the Firebase custom SMTP settings via the same Admin API access I already have for this
-  project, once the SMTP credentials exist.
-
-None of that is possible without the domain access, so this file is the handoff point.
+Postmark's free tier is 100 emails/month, permanently. Past that, cheapest paid plan is
+$15/month for 10,000 emails. Amazon SES is the cheaper alternative at real volume ($0.10/1,000
+emails, pay-as-you-go) but requires setting up a separate AWS account.
