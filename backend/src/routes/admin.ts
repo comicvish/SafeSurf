@@ -8,7 +8,6 @@ import { syncYoutubeVideos } from '../services/youtube.js'
 import { listUnassignedVideos } from '../services/videos.js'
 import { createLesson } from '../services/content.js'
 import { generatePracticeSession } from '../services/practice.js'
-import { suggestLessonAssignment } from '../services/curation.js'
 
 export const adminRouter = Router()
 
@@ -45,18 +44,6 @@ adminRouter.get(
     const cursor = typeof req.query.cursor === 'string' ? req.query.cursor : undefined
     const page = await listUnassignedVideos({ limit, cursor })
     res.json(page)
-  }),
-)
-
-adminRouter.get(
-  '/admin/videos/:videoId/suggest-assignment',
-  authAttemptLimiter,
-  verifyFirebaseToken,
-  requireAdmin,
-  authenticatedLimiter,
-  asyncHandler(async (req, res) => {
-    const suggestion = await suggestLessonAssignment(req.params.videoId)
-    res.json({ suggestion })
   }),
 )
 

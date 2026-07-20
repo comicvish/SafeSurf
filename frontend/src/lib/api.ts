@@ -1,7 +1,6 @@
 import type {
   CourseDetail,
   CourseSummary,
-  LessonAssignmentSuggestion,
   LessonDetail,
   PracticeAnswerReveal,
   PracticeSession,
@@ -74,10 +73,6 @@ export async function listUnassignedVideos(options: { limit?: number; cursor?: s
   if (options.cursor) params.set('cursor', options.cursor)
   const query = params.toString()
   return getJson(`/api/admin/videos${query ? `?${query}` : ''}`, { headers: await authHeaders() })
-}
-
-export async function suggestLessonAssignment(videoId: string): Promise<{ suggestion: LessonAssignmentSuggestion }> {
-  return getJson(`/api/admin/videos/${videoId}/suggest-assignment`, { headers: await authHeaders() })
 }
 
 export async function assignVideoToLesson(input: {
