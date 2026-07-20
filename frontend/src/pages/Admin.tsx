@@ -1,6 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
-import { assignVideoToLesson, getCourse, listCourses, listUnassignedVideos, triggerYoutubeSync } from '../lib/api'
-import type { CourseSummary, SyncResult, UnassignedVideo, UnitWithLessons } from '../lib/types'
+import {
+  assignVideoToLesson,
+  getCourse,
+  listCourses,
+  listUnassignedVideos,
+  suggestLessonAssignment,
+  triggerYoutubeSync,
+} from '../lib/api'
+import type { CourseSummary, LessonAssignmentSuggestion, SyncResult, UnassignedVideo, UnitWithLessons } from '../lib/types'
 
 export default function Admin() {
   const [videos, setVideos] = useState<UnassignedVideo[]>([])
@@ -185,6 +192,31 @@ function AssignForm({
   const [summary, setSummary] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [suggestion, setSuggestion] = useState<LessonAssignmentSuggestion | null>(null)
+  const [suggestionLoading, setSuggestionLoading] = useState(true)
+
+  // Fetches an AI-suggested course/unit/order/summary once, on mount, and
+  // pre-fills the form with it — the admin still reviews and confirms (or
+  // edits) before anything is actually created. Silent on failure: this is a
+  // convenience, not a requirement, so the form just stays empty as before.
+  useEffect(() => {
+    let active = true
+    suggestLessonAssignment(video.id)
+      .then((data) => {
+        if (!active) return
+        setSuggestion(data.suggestion)
+        if (data.suggestion.summary) setSummary(data.suggestion.summary)
+        if (data.suggestion.courseId) setCourseId(data.suggestion.courseId)
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (active) setSuggestionLoading(false)
+      })
+    return () => {
+      active = false
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [video.id])
 
   useEffect(() => {
     setUnitId('')
@@ -195,7 +227,11 @@ function AssignForm({
     let active = true
     getCourse(courseId)
       .then((data) => {
-        if (active) setUnits(data.course.units)
+        if (!active) return
+        setUnits(data.course.units)
+        if (suggestion?.courseId === courseId && suggestion.unitId) {
+          setUnitId(suggestion.unitId)
+        }
       })
       .catch(() => {
         if (active) setUnits([])
@@ -203,12 +239,23 @@ function AssignForm({
     return () => {
       active = false
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [courseId])
 
   useEffect(() => {
     const unit = units.find((u) => u.id === unitId)
     if (unit) setOrder(unit.lessons.length + 1)
   }, [unitId, units])
+
+  // Declared after the effect above so it runs later in the same commit —
+  // its setOrder call is what actually sticks, overriding the default
+  // end-of-unit position with the AI's suggested one when it applies to the
+  // currently-selected unit.
+  useEffect(() => {
+    if (suggestion?.unitId === unitId && suggestion.order !== null) {
+      setOrder(suggestion.order)
+    }
+  }, [unitId, suggestion])
 
   const handleSubmit = async () => {
     if (!unitId || !summary) {
@@ -233,6 +280,17 @@ function AssignForm({
 
   return (
     <div className="admin-assign-form">
+      {suggestionLoading ? (
+        <p className="admin-ai-suggestion-note" role="status">
+          Asking AI where this video fits…
+        </p>
+      ) : (
+        suggestion?.reasoning && (
+          <p className="admin-ai-suggestion-note">
+            <strong>AI suggestion:</strong> {suggestion.reasoning} Review before assigning.
+          </p>
+        )
+      )}
       <label>
         Course
         <select value={courseId} onChange={(e) => setCourseId(e.target.value)}>

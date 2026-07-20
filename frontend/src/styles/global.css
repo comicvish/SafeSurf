@@ -1387,6 +1387,13 @@ footer small {
   animation: pop-in var(--duration-base) var(--ease-out) both;
 }
 
+.admin-ai-suggestion-note {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: #52697f;
+}
+
 .admin-assign-form label {
   display: flex;
   flex-direction: column;

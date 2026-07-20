@@ -46,6 +46,14 @@ export interface UnassignedVideoPage {
   nextCursor: string | null
 }
 
+export interface LessonAssignmentSuggestion {
+  courseId: string | null
+  unitId: string | null
+  order: number | null
+  summary: string
+  reasoning: string
+}
+
 export interface SyncResult {
   channelVideosFound: number
   newVideos: number
