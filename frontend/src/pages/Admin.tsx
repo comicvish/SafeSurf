@@ -1,5 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
-import { assignVideoToLesson, getCourse, listCourses, listUnassignedVideos, triggerYoutubeSync } from '../lib/api'
+import {
+  assignVideoToExistingLesson,
+  assignVideoToLesson,
+  getCourse,
+  listCourses,
+  listUnassignedVideos,
+  triggerYoutubeSync,
+} from '../lib/api'
 import type { CourseSummary, SyncResult, UnassignedVideo, UnitWithLessons } from '../lib/types'
 
 export default function Admin() {
@@ -178,8 +185,10 @@ function AssignForm({
   onDone: (practiceGenerated: boolean) => void
   onCancel: () => void
 }) {
+  const [mode, setMode] = useState<'existing' | 'new'>('existing')
   const [courseId, setCourseId] = useState('')
   const [units, setUnits] = useState<UnitWithLessons[]>([])
+  const [lessonId, setLessonId] = useState('')
   const [unitId, setUnitId] = useState('')
   const [order, setOrder] = useState(1)
   const [summary, setSummary] = useState('')
@@ -188,6 +197,7 @@ function AssignForm({
 
   useEffect(() => {
     setUnitId('')
+    setLessonId('')
     if (!courseId) {
       setUnits([])
       return
@@ -210,7 +220,35 @@ function AssignForm({
     if (unit) setOrder(unit.lessons.length + 1)
   }, [unitId, units])
 
+  const lessonsWithoutVideo = units.flatMap((unit) =>
+    unit.lessons.filter((l) => !l.hasVideo).map((l) => ({ ...l, unitTitle: unit.title })),
+  )
+
+  const handleSelectLesson = (id: string) => {
+    setLessonId(id)
+    const lesson = lessonsWithoutVideo.find((l) => l.id === id)
+    if (lesson) setSummary(lesson.summary)
+  }
+
   const handleSubmit = async () => {
+    if (mode === 'existing') {
+      if (!lessonId) {
+        setError('Choose a lesson to attach this video to.')
+        return
+      }
+      setSubmitting(true)
+      setError(null)
+      try {
+        const result = await assignVideoToExistingLesson(lessonId, { videoId: video.id, summary })
+        onDone(result.practiceGenerated)
+      } catch {
+        setError('Could not assign this video.')
+      } finally {
+        setSubmitting(false)
+      }
+      return
+    }
+
     if (!unitId || !summary) {
       setError('Unit and summary are required.')
       return
@@ -233,6 +271,21 @@ function AssignForm({
 
   return (
     <div className="admin-assign-form">
+      <fieldset className="admin-assign-mode">
+        <label>
+          <input
+            type="radio"
+            name={`mode-${video.id}`}
+            checked={mode === 'existing'}
+            onChange={() => setMode('existing')}
+          />
+          Attach to an existing lesson
+        </label>
+        <label>
+          <input type="radio" name={`mode-${video.id}`} checked={mode === 'new'} onChange={() => setMode('new')} />
+          Create a new lesson
+        </label>
+      </fieldset>
       <label>
         Course
         <select value={courseId} onChange={(e) => setCourseId(e.target.value)}>
@@ -244,21 +297,42 @@ function AssignForm({
           ))}
         </select>
       </label>
-      <label>
-        Unit
-        <select value={unitId} onChange={(e) => setUnitId(e.target.value)} disabled={!courseId}>
-          <option value="">Select a unit…</option>
-          {units.map((u) => (
-            <option key={u.id} value={u.id}>
-              {u.title}
-            </option>
-          ))}
-        </select>
-      </label>
-      <label>
-        Order within unit
-        <input type="number" min={1} value={order} onChange={(e) => setOrder(Number(e.target.value))} />
-      </label>
+
+      {mode === 'existing' ? (
+        <label>
+          Lesson
+          <select value={lessonId} onChange={(e) => handleSelectLesson(e.target.value)} disabled={!courseId}>
+            <option value="">Select a lesson…</option>
+            {lessonsWithoutVideo.map((l) => (
+              <option key={l.id} value={l.id}>
+                {l.unitTitle} — {l.title}
+              </option>
+            ))}
+          </select>
+          {courseId && lessonsWithoutVideo.length === 0 && (
+            <span className="admin-warning">No lessons without a video in this course.</span>
+          )}
+        </label>
+      ) : (
+        <label>
+          Unit
+          <select value={unitId} onChange={(e) => setUnitId(e.target.value)} disabled={!courseId}>
+            <option value="">Select a unit…</option>
+            {units.map((u) => (
+              <option key={u.id} value={u.id}>
+                {u.title}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
+
+      {mode === 'new' && (
+        <label>
+          Order within unit
+          <input type="number" min={1} value={order} onChange={(e) => setOrder(Number(e.target.value))} />
+        </label>
+      )}
       <label>
         Summary
         <textarea value={summary} onChange={(e) => setSummary(e.target.value)} rows={2} />

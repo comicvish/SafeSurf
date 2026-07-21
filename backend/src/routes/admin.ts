@@ -6,7 +6,7 @@ import { asyncHandler } from '../middleware/asyncHandler.js'
 import { adminMutationLimiter, authAttemptLimiter, authenticatedLimiter, syncLimiter } from '../middleware/rateLimits.js'
 import { syncYoutubeVideos } from '../services/youtube.js'
 import { listUnassignedVideos } from '../services/videos.js'
-import { createLesson } from '../services/content.js'
+import { assignVideoToExistingLesson, createLesson } from '../services/content.js'
 import { generatePracticeSession } from '../services/practice.js'
 
 export const adminRouter = Router()
@@ -89,5 +89,43 @@ adminRouter.post(
     }
 
     res.status(201).json({ lessonId, practiceGenerated })
+  }),
+)
+
+adminRouter.post(
+  '/admin/lessons/:lessonId/video',
+  authAttemptLimiter,
+  verifyFirebaseToken,
+  requireAdmin,
+  adminMutationLimiter,
+  asyncHandler(async (req, res) => {
+    const body = req.body as { videoId?: unknown; summary?: unknown }
+    if (typeof body.videoId !== 'string' || body.videoId.trim() === '') {
+      res.status(400).json({ error: 'videoId is required' })
+      return
+    }
+    const summary = typeof body.summary === 'string' ? body.summary : undefined
+
+    const { lessonId } = req.params
+    const { video, summary: resolvedSummary } = await assignVideoToExistingLesson({
+      lessonId,
+      videoId: body.videoId,
+      summary,
+    })
+
+    let practiceGenerated = true
+    try {
+      await generatePracticeSession(lessonId, {
+        lessonTitle: video.title,
+        lessonSummary: resolvedSummary,
+        videoTitle: video.title,
+        videoDescription: video.description,
+      })
+    } catch (err) {
+      practiceGenerated = false
+      console.error(`Practice generation failed for lesson ${lessonId}`, err)
+    }
+
+    res.json({ practiceGenerated })
   }),
 )

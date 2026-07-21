@@ -88,6 +88,20 @@ export async function assignVideoToLesson(input: {
   })
 }
 
+// Attaches a video to a lesson that already exists (e.g. a lesson seeded
+// ahead of its recording) instead of creating a second lesson doc for the
+// same slot.
+export async function assignVideoToExistingLesson(
+  lessonId: string,
+  input: { videoId: string; summary?: string },
+): Promise<{ practiceGenerated: boolean }> {
+  return getJson(`/api/admin/lessons/${lessonId}/video`, {
+    method: 'POST',
+    headers: { ...(await authHeaders()), 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  })
+}
+
 export async function getPracticeSession(lessonId: string): Promise<PracticeSession | null> {
   const res = await fetch(`/api/lessons/${lessonId}/practice`)
   if (res.status === 404) return null

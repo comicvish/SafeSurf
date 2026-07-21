@@ -11,7 +11,7 @@ export interface UnitWithLessons {
   id: string
   title: string
   order: number
-  lessons: { id: string; title: string; order: number; summary: string }[]
+  lessons: { id: string; title: string; order: number; summary: string; hasVideo: boolean }[]
 }
 
 export interface CourseDetail {

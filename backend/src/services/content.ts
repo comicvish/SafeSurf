@@ -45,6 +45,36 @@ export async function createLesson(input: {
   return { lessonId: lessonRef.id, video: { title: video.title, description: video.description } }
 }
 
+// Attaches a video to a lesson that already exists (created ahead of the
+// recording, e.g. via seed data) instead of creating a second lesson doc for
+// the same slot — that duplication is what createLesson's admin flow used to
+// cause when "assigning a video" really meant "this lesson's video is ready".
+export async function assignVideoToExistingLesson(input: {
+  lessonId: string
+  videoId: string
+  summary?: string
+}): Promise<{ video: { title: string; description: string }; summary: string }> {
+  const lessonRef = db.collection('lessons').doc(input.lessonId)
+  const videoRef = db.collection('videos').doc(input.videoId)
+
+  const result = await db.runTransaction(async (tx) => {
+    const [lessonSnap, videoSnap] = await Promise.all([tx.get(lessonRef), tx.get(videoRef)])
+    if (!lessonSnap.exists) throw new Error('Lesson not found')
+    const lessonData = lessonSnap.data() as LessonDoc
+    if (lessonData.videoId) throw new Error('Lesson already has a video assigned')
+    if (!videoSnap.exists) throw new Error('Video not found')
+    const videoData = videoSnap.data() as VideoDoc
+    if (videoData.status === 'assigned') throw new Error('Video is already assigned to a lesson')
+
+    const summary = input.summary?.trim() || lessonData.summary
+    tx.update(lessonRef, { videoId: input.videoId, summary })
+    tx.update(videoRef, { status: 'assigned' })
+    return { video: videoData, summary }
+  })
+
+  return { video: { title: result.video.title, description: result.video.description }, summary: result.summary }
+}
+
 // Lists courses with unit/lesson *counts* only — used by the public course
 // catalog, which never needs unit titles or lesson bodies. Counts come from
 // Firestore's count() aggregation (billed per up-to-1000 index entries
@@ -110,6 +140,7 @@ export async function listCourseDetails(): Promise<CourseDetail[]> {
       title: (data.videoId && titleByVideoId.get(data.videoId)) || data.title || '',
       order: data.order,
       summary: data.summary,
+      hasVideo: !!data.videoId,
     })
     lessonsByUnit.set(data.unitId, list)
   })
@@ -189,6 +220,7 @@ export async function getCourseDetail(courseId: string): Promise<CourseDetail | 
         title: (lesson.videoId && titleByVideoId.get(lesson.videoId)) || lesson.title || '',
         order: lesson.order,
         summary: lesson.summary,
+        hasVideo: !!lesson.videoId,
       }))
       .sort((a, b) => a.order - b.order)
     return { id: doc.id, title: data.title, order: data.order, lessons }
