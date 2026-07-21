@@ -97,7 +97,9 @@ export async function listCourseDetails(): Promise<CourseDetail[]> {
     db.collection('lessons').get(),
   ])
 
-  const titleByVideoId = await getVideoTitles(lessonsSnap.docs.map((doc) => (doc.data() as LessonDoc).videoId))
+  const titleByVideoId = await getVideoTitles(
+    lessonsSnap.docs.map((doc) => (doc.data() as LessonDoc).videoId).filter((videoId): videoId is string => !!videoId),
+  )
 
   const lessonsByUnit = new Map<string, UnitWithLessons['lessons']>()
   lessonsSnap.forEach((doc) => {
@@ -105,7 +107,7 @@ export async function listCourseDetails(): Promise<CourseDetail[]> {
     const list = lessonsByUnit.get(data.unitId) ?? []
     list.push({
       id: doc.id,
-      title: titleByVideoId.get(data.videoId) ?? '',
+      title: (data.videoId && titleByVideoId.get(data.videoId)) || data.title || '',
       order: data.order,
       summary: data.summary,
     })
@@ -154,7 +156,7 @@ export async function getCourseDetail(courseId: string): Promise<CourseDetail | 
   const unitsSnap = await db.collection('units').where('courseId', '==', courseId).orderBy('order').get()
   const unitIds = unitsSnap.docs.map((doc) => doc.id)
 
-  const lessonsByUnit = new Map<string, { id: string; videoId: string; order: number; summary: string }[]>()
+  const lessonsByUnit = new Map<string, { id: string; videoId?: string; title?: string; order: number; summary: string }[]>()
   if (unitIds.length > 0) {
     const lessonsSnaps = await Promise.all(
       chunk(unitIds, FIRESTORE_IN_QUERY_LIMIT).map((batch) => db.collection('lessons').where('unitId', 'in', batch).get()),
@@ -163,22 +165,28 @@ export async function getCourseDetail(courseId: string): Promise<CourseDetail | 
       snap.forEach((doc) => {
         const data = doc.data() as LessonDoc
         const list = lessonsByUnit.get(data.unitId) ?? []
-        list.push({ id: doc.id, videoId: data.videoId, order: data.order, summary: data.summary })
+        list.push({ id: doc.id, videoId: data.videoId, title: data.title, order: data.order, summary: data.summary })
         lessonsByUnit.set(data.unitId, list)
       }),
     )
   }
 
-  // Lesson titles are never stored on the lesson — they always mirror the
-  // linked video's current title, so a rename on YouTube shows up here too.
-  const titleByVideoId = await getVideoTitles([...lessonsByUnit.values()].flat().map((lesson) => lesson.videoId))
+  // For lessons with a video, the title mirrors the linked video's current
+  // title (so a rename on YouTube shows up here too) rather than the
+  // lesson's own `title`, which is only a fallback for video-less lessons.
+  const titleByVideoId = await getVideoTitles(
+    [...lessonsByUnit.values()]
+      .flat()
+      .map((lesson) => lesson.videoId)
+      .filter((videoId): videoId is string => !!videoId),
+  )
 
   const units: UnitWithLessons[] = unitsSnap.docs.map((doc) => {
     const data = doc.data() as UnitDoc
     const lessons = (lessonsByUnit.get(doc.id) ?? [])
       .map((lesson) => ({
         id: lesson.id,
-        title: titleByVideoId.get(lesson.videoId) ?? '',
+        title: (lesson.videoId && titleByVideoId.get(lesson.videoId)) || lesson.title || '',
         order: lesson.order,
         summary: lesson.summary,
       }))
@@ -222,6 +230,7 @@ export async function getLessonDetail(lessonId: string): Promise<LessonDetail | 
   const lessonSnap = await db.collection('lessons').doc(lessonId).get()
   if (!lessonSnap.exists) return null
   const lesson = lessonSnap.data() as LessonDoc
+  if (!lesson.videoId) return null
 
   const [unitSnap, videoSnap] = await Promise.all([
     db.collection('units').doc(lesson.unitId).get(),

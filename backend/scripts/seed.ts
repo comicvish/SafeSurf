@@ -1,44 +1,27 @@
 import { db } from '../src/services/firestore.js'
-import type { CourseDoc, LessonDoc, UnitDoc, VideoDoc } from '../src/types.js'
+import type { CourseDoc, LessonDoc, UnitDoc } from '../src/types.js'
 
-// Placeholder video (Blender Foundation's Big Buck Bunny trailer — public,
-// always embeddable) until real VeraBlock lessons are synced in Phase 4.
-// Lesson titles always mirror the linked video's title, so each seeded
-// video gets its own distinct title matching the intended lesson name.
-const PLACEHOLDER_VIDEO: Omit<VideoDoc, 'title'> = {
-  youtubeVideoId: 'aqz-KE-bpKQ',
-  description: 'Sample video standing in for a real VeraBlock lesson recording.',
-  thumbnailUrl: 'https://i.ytimg.com/vi/aqz-KE-bpKQ/hqdefault.jpg',
-  embeddable: true,
-  privacyStatus: 'public',
-  status: 'assigned',
-}
-
-async function seedVideo(id: string, title: string): Promise<void> {
-  await db
-    .collection('videos')
-    .doc(id)
-    .set({ ...PLACEHOLDER_VIDEO, title } satisfies VideoDoc)
-}
-
+// Lessons are seeded without a video — real recordings get attached later
+// via the admin "assign video" flow (see routes/admin.ts), which is also
+// what fills in videoId and lets the lesson's title start mirroring the
+// video's title instead of this fallback.
 async function seedCourse(
   id: string,
   course: CourseDoc,
   units: {
     id: string
     unit: UnitDoc
-    lessons: { id: string; title: string; lesson: Omit<LessonDoc, 'unitId' | 'videoId'> }[]
+    lessons: { id: string; title: string; lesson: Omit<LessonDoc, 'unitId' | 'videoId' | 'title'> }[]
   }[],
 ): Promise<void> {
   await db.collection('courses').doc(id).set(course)
   for (const { id: unitId, unit, lessons } of units) {
     await db.collection('units').doc(unitId).set(unit)
     for (const { id: lessonId, title, lesson } of lessons) {
-      await seedVideo(`${lessonId}-video`, title)
       await db
         .collection('lessons')
         .doc(lessonId)
-        .set({ ...lesson, unitId, videoId: `${lessonId}-video` } satisfies LessonDoc)
+        .set({ ...lesson, unitId, title } satisfies LessonDoc)
     }
   }
 }

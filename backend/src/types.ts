@@ -36,7 +36,11 @@ export interface UnassignedVideoPage {
 
 export interface LessonDoc {
   unitId: string
-  videoId: string
+  // Absent for lessons that don't have a video assigned yet. When present,
+  // the lesson's title mirrors the video's current title (see `title`
+  // below for the fallback used while no video is assigned).
+  videoId?: string
+  title?: string
   order: number
   summary: string
 }
