@@ -43,6 +43,10 @@ export interface LessonDoc {
   title?: string
   order: number
   summary: string
+  // A single memorable sentence anchoring the lesson's trained behavior
+  // (e.g. "Real emergencies survive a callback"). Optional — most lessons
+  // don't have one authored yet.
+  keyRule?: string
 }
 
 export interface CourseSummary {
@@ -72,6 +76,7 @@ export interface LessonDetail {
   id: string
   title: string
   summary: string
+  keyRule?: string
   video: { youtubeVideoId: string; title: string; description: string }
   unit: { id: string; title: string }
   course: { id: string; title: string }
@@ -130,6 +135,8 @@ export interface UserStatsDoc {
   currentStreak: number
   longestStreak: number
   lastPracticeDate: string | null
+  emailRemindersOptOut?: boolean
+  lastReminderEmailSentAt?: string
 }
 
 export interface UserStats {
@@ -146,9 +153,64 @@ export interface PracticeResultDoc {
   completedAt: string
 }
 
+export interface ReviewScheduleDoc {
+  lessonId: string
+  stage: number
+  nextDueAt: string
+  lastReviewedAt: string
+}
+
+export interface DueReview {
+  lessonId: string
+  title: string
+  summary: string
+  keyRule?: string
+  nextDueAt: string
+}
+
+// Append-only, unlike ReviewScheduleDoc (which only tracks current state) —
+// the only way to answer "is retention holding up at later stages" after
+// the fact.
+export interface ReviewEventDoc {
+  lessonId: string
+  passed: boolean
+  stageBefore: number
+  stageAfter: number
+  at: string
+}
+
+export interface ReviewAnalytics {
+  totalReviewsCompleted: number
+  passRateByStage: Record<number, number>
+  stageDistribution: Record<number, number>
+}
+
 export interface PracticeSubmitResult {
   score: number
   totalQuestions: number
   xpEarned: number
   stats: UserStats
+}
+
+// Never stores the actual safe word — only that a link exists between two
+// accounts and that they've confirmed setting one up together. Storing the
+// word itself would defeat its purpose the moment this database is ever
+// breached, and it's unnecessary risk for VeraBlock to take on.
+export interface FamilyLinkDoc {
+  inviterUid: string
+  inviterEmail: string
+  accepterUid?: string
+  accepterEmail?: string
+  status: 'pending' | 'active'
+  safeWordConfirmedAt?: string
+  createdAt: string
+  expiresAt: string
+}
+
+export interface FamilyLinkStatus {
+  linkId: string
+  status: 'pending' | 'active'
+  role: 'inviter' | 'accepter'
+  otherEmail: string | null
+  safeWordConfirmedAt: string | null
 }

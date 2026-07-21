@@ -14,3 +14,11 @@ export async function deleteAccount(uid: string): Promise<void> {
   await db.collection('users').doc(uid).delete()
   await auth.deleteUser(uid)
 }
+
+export async function optOutOfEmailReminders(uid: string): Promise<void> {
+  await db.collection('users').doc(uid).set({ emailRemindersOptOut: true }, { merge: true })
+}
+
+export async function markReminderEmailSent(uid: string): Promise<void> {
+  await db.collection('users').doc(uid).set({ lastReminderEmailSentAt: new Date().toISOString() }, { merge: true })
+}

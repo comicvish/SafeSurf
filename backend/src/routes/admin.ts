@@ -8,6 +8,10 @@ import { syncYoutubeVideos } from '../services/youtube.js'
 import { listUnassignedVideos } from '../services/videos.js'
 import { assignVideoToExistingLesson, createLesson } from '../services/content.js'
 import { generatePracticeSession } from '../services/practice.js'
+import { getReviewAnalytics, getReminderCandidates } from '../services/reviews.js'
+import { markReminderEmailSent, optOutOfEmailReminders } from '../services/account.js'
+import { sendReviewReminderEmail } from '../services/email.js'
+import { auth } from '../services/firebaseAdmin.js'
 
 export const adminRouter = Router()
 
@@ -29,6 +33,78 @@ adminRouter.post(
   asyncHandler(async (_req, res) => {
     const result = await syncYoutubeVideos()
     res.json({ result })
+  }),
+)
+
+const SITE_ORIGIN = 'https://verablock.org'
+
+adminRouter.post(
+  '/admin/send-review-reminders',
+  authAttemptLimiter,
+  verifySchedulerOrAdmin,
+  syncLimiter,
+  asyncHandler(async (req, res) => {
+    const dryRun = req.query.dryRun === 'true'
+    const candidates = await getReminderCandidates()
+
+    let sent = 0
+    let failed = 0
+    const recipients: string[] = []
+
+    for (const { uid, dueLessons } of candidates) {
+      let email: string | null = null
+      try {
+        email = (await auth.getUser(uid)).email ?? null
+      } catch (err) {
+        console.error(`Could not resolve email for uid ${uid}`, err)
+      }
+      if (!email) {
+        failed++
+        continue
+      }
+
+      recipients.push(email)
+      if (dryRun) continue
+
+      try {
+        await sendReviewReminderEmail(email, {
+          dueLessons,
+          dashboardUrl: `${SITE_ORIGIN}/dashboard`,
+          unsubscribeUrl: `${SITE_ORIGIN}/api/admin/unsubscribe/${uid}`,
+        })
+        await markReminderEmailSent(uid)
+        sent++
+      } catch (err) {
+        failed++
+        console.error(`Failed to send review reminder to uid ${uid}`, err)
+      }
+    }
+
+    res.json(dryRun ? { dryRun: true, wouldSend: recipients.length, recipients } : { sent, failed })
+  }),
+)
+
+// No auth — this is a link clicked from an email client, not an in-app
+// action. Not token-signed: the worst case of a forged unsubscribe is that
+// someone stops getting a helpful reminder, not a data exposure, so a
+// signing scheme isn't worth the complexity here.
+adminRouter.get(
+  '/admin/unsubscribe/:uid',
+  asyncHandler(async (req, res) => {
+    await optOutOfEmailReminders(req.params.uid)
+    res.type('html').send('<!doctype html><p>You will no longer receive VeraBlock review reminder emails.</p>')
+  }),
+)
+
+adminRouter.get(
+  '/admin/review-analytics',
+  authAttemptLimiter,
+  verifyFirebaseToken,
+  requireAdmin,
+  authenticatedLimiter,
+  asyncHandler(async (_req, res) => {
+    const analytics = await getReviewAnalytics()
+    res.json({ analytics })
   }),
 )
 
@@ -107,7 +183,7 @@ adminRouter.post(
     const summary = typeof body.summary === 'string' ? body.summary : undefined
 
     const { lessonId } = req.params
-    const { video, summary: resolvedSummary } = await assignVideoToExistingLesson({
+    const { video, summary: resolvedSummary, keyRule } = await assignVideoToExistingLesson({
       lessonId,
       videoId: body.videoId,
       summary,
@@ -120,6 +196,7 @@ adminRouter.post(
         lessonSummary: resolvedSummary,
         videoTitle: video.title,
         videoDescription: video.description,
+        keyRule,
       })
     } catch (err) {
       practiceGenerated = false

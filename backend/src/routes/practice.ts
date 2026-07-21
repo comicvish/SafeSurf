@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import { verifyFirebaseToken } from '../middleware/verifyFirebaseToken.js'
+import { optionalFirebaseToken } from '../middleware/optionalFirebaseToken.js'
 import { asyncHandler } from '../middleware/asyncHandler.js'
 import { authAttemptLimiter, authenticatedLimiter, publicReadLimiter } from '../middleware/rateLimits.js'
 import {
@@ -15,8 +16,9 @@ export const practiceRouter = Router()
 practiceRouter.get(
   '/lessons/:lessonId/practice',
   publicReadLimiter,
+  optionalFirebaseToken,
   asyncHandler(async (req, res) => {
-    const practice = await getPracticeSession(req.params.lessonId)
+    const practice = await getPracticeSession(req.params.lessonId, res.locals.uid)
     if (!practice) {
       res.status(404).json({ error: 'No practice session for this lesson' })
       return
@@ -49,12 +51,25 @@ practiceRouter.post(
   authenticatedLimiter,
   asyncHandler(async (req, res) => {
     const body = req.body as { answers?: unknown }
-    if (!Array.isArray(body.answers) || !body.answers.every((a) => typeof a === 'number')) {
-      res.status(400).json({ error: 'answers must be an array of numbers' })
+    const isValidShape =
+      Array.isArray(body.answers) &&
+      body.answers.every(
+        (a): a is { questionId: string; answerIndex: number } =>
+          typeof a === 'object' &&
+          a !== null &&
+          typeof (a as { questionId?: unknown }).questionId === 'string' &&
+          typeof (a as { answerIndex?: unknown }).answerIndex === 'number',
+      )
+    if (!isValidShape) {
+      res.status(400).json({ error: 'answers must be an array of { questionId, answerIndex }' })
       return
     }
     try {
-      const result = await submitPracticeAnswers(res.locals.uid, req.params.lessonId, body.answers)
+      const result = await submitPracticeAnswers(
+        res.locals.uid,
+        req.params.lessonId,
+        body.answers as { questionId: string; answerIndex: number }[],
+      )
       res.json(result)
     } catch (err) {
       if (err instanceof PracticeSessionNotFoundError) {

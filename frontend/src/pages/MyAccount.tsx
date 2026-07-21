@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../lib/authContext'
 import { useStats } from '../lib/statsContext'
-import { deleteAccount } from '../lib/api'
+import { confirmFamilySafeWord, createFamilyInvite, deleteAccount, getFamilyStatus, unlinkFamily } from '../lib/api'
+import type { FamilyLinkStatus } from '../lib/types'
 
 const PAGE_TITLE = 'My Account | VeraBlock'
 const DEFAULT_TITLE = 'VeraBlock | Learn to stay safe online'
@@ -21,12 +22,64 @@ export default function MyAccount() {
   const [confirmingDelete, setConfirmingDelete] = useState(false)
   const [deleteStatus, setDeleteStatus] = useState<'idle' | 'deleting' | 'error'>('idle')
 
+  const [familyStatus, setFamilyStatus] = useState<FamilyLinkStatus | null | undefined>(undefined)
+  const [inviteUrl, setInviteUrl] = useState<string | null>(null)
+  const [familyBusy, setFamilyBusy] = useState(false)
+  const [familyError, setFamilyError] = useState<string | null>(null)
+
   useEffect(() => {
     document.title = PAGE_TITLE
     return () => {
       document.title = DEFAULT_TITLE
     }
   }, [])
+
+  useEffect(() => {
+    getFamilyStatus()
+      .then(setFamilyStatus)
+      .catch(() => setFamilyStatus(null))
+  }, [])
+
+  const handleInvite = async () => {
+    setFamilyBusy(true)
+    setFamilyError(null)
+    try {
+      const { linkId } = await createFamilyInvite()
+      setInviteUrl(`${window.location.origin}/family-link/${linkId}`)
+      setFamilyStatus(await getFamilyStatus())
+    } catch (err) {
+      setFamilyError(err instanceof Error ? err.message : 'Could not create an invite.')
+    } finally {
+      setFamilyBusy(false)
+    }
+  }
+
+  const handleConfirmSafeWord = async () => {
+    setFamilyBusy(true)
+    setFamilyError(null)
+    try {
+      await confirmFamilySafeWord()
+      setFamilyStatus(await getFamilyStatus())
+    } catch (err) {
+      setFamilyError(err instanceof Error ? err.message : 'Could not save that.')
+    } finally {
+      setFamilyBusy(false)
+    }
+  }
+
+  const handleUnlink = async () => {
+    setFamilyBusy(true)
+    setFamilyError(null)
+    try {
+      await unlinkFamily()
+      setInviteUrl(null)
+      setFamilyStatus(null)
+    } catch (err) {
+      setFamilyError(err instanceof Error ? err.message : 'Could not unlink.')
+    } finally {
+      setFamilyBusy(false)
+    }
+  }
 
   const handleSendReset = async () => {
     if (!user?.email) return
@@ -105,6 +158,53 @@ export default function MyAccount() {
         {resetStatus === 'error' && (
           <p className="auth-error" role="alert">
             Couldn't send the reset email — try again.
+          </p>
+        )}
+      </section>
+
+      <section className="account-section">
+        <h2>Family safety</h2>
+        <p>
+          Link with a family member so you can agree on a safe word together — a phrase only the two of you would
+          know, to check that it's really them if a call ever feels off. We don't store the word itself, only that
+          you've set one up.
+        </p>
+        {familyStatus === undefined ? null : familyStatus === null ? (
+          <>
+            <button className="button button-secondary" onClick={() => void handleInvite()} disabled={familyBusy}>
+              {familyBusy ? 'Creating invite…' : 'Invite a family member'}
+            </button>
+            {inviteUrl && (
+              <p className="account-status" role="status" aria-live="polite">
+                Share this link with them: <strong>{inviteUrl}</strong>
+              </p>
+            )}
+          </>
+        ) : familyStatus.status === 'pending' ? (
+          <>
+            <p className="account-status">Waiting for {familyStatus.otherEmail ?? 'them'} to accept your invite.</p>
+            <button className="button button-secondary" onClick={() => void handleUnlink()} disabled={familyBusy}>
+              Cancel invite
+            </button>
+          </>
+        ) : (
+          <>
+            <p className="account-status">Linked with {familyStatus.otherEmail}.</p>
+            {familyStatus.safeWordConfirmedAt ? (
+              <p className="account-status">✓ You've both confirmed your safe word is set up.</p>
+            ) : (
+              <button className="button button-secondary" onClick={() => void handleConfirmSafeWord()} disabled={familyBusy}>
+                {familyBusy ? 'Saving…' : "We've set up our safe word"}
+              </button>
+            )}
+            <button className="button button-secondary" onClick={() => void handleUnlink()} disabled={familyBusy}>
+              Unlink
+            </button>
+          </>
+        )}
+        {familyError && (
+          <p className="auth-error" role="alert">
+            {familyError}
           </p>
         )}
       </section>

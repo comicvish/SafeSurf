@@ -3,11 +3,12 @@ import {
   assignVideoToExistingLesson,
   assignVideoToLesson,
   getCourse,
+  getReviewAnalytics,
   listCourses,
   listUnassignedVideos,
   triggerYoutubeSync,
 } from '../lib/api'
-import type { CourseSummary, SyncResult, UnassignedVideo, UnitWithLessons } from '../lib/types'
+import type { CourseSummary, ReviewAnalytics, SyncResult, UnassignedVideo, UnitWithLessons } from '../lib/types'
 
 export default function Admin() {
   const [videos, setVideos] = useState<UnassignedVideo[]>([])
@@ -20,6 +21,8 @@ export default function Admin() {
   const [coursesError, setCoursesError] = useState<string | null>(null)
   const [assigningVideoIds, setAssigningVideoIds] = useState<Set<string>>(new Set())
   const [assignNote, setAssignNote] = useState<string | null>(null)
+  const [analytics, setAnalytics] = useState<ReviewAnalytics | null>(null)
+  const [analyticsError, setAnalyticsError] = useState<string | null>(null)
 
   // refreshVideos() and loadMoreVideos() can both be in flight at once (e.g.
   // a "load more" request is still pending when assigning a video triggers a
@@ -67,6 +70,9 @@ export default function Admin() {
   useEffect(() => {
     void refreshVideos()
     void refreshCourses()
+    getReviewAnalytics()
+      .then(setAnalytics)
+      .catch(() => setAnalyticsError('Could not load retention analytics.'))
   }, [])
 
   const handleSync = async () => {
@@ -98,6 +104,33 @@ export default function Admin() {
   return (
     <main className="admin-page section-shell">
       <h1>Admin: curate videos</h1>
+
+      <h2 className="admin-section-title">Retention</h2>
+      {analyticsError && (
+        <p className="auth-error" role="alert">
+          {analyticsError}
+        </p>
+      )}
+      {analytics && (
+        <div className="stats-row">
+          <div className="stat-tile">
+            <strong>{analytics.totalReviewsCompleted}</strong>
+            <span>Reviews completed</span>
+          </div>
+          {Object.entries(analytics.stageDistribution)
+            .sort(([a], [b]) => Number(a) - Number(b))
+            .map(([stage, count]) => (
+              <div className="stat-tile" key={stage}>
+                <strong>{count}</strong>
+                <span>
+                  At stage {stage}
+                  {analytics.passRateByStage[Number(stage)] !== undefined &&
+                    ` (${Math.round(analytics.passRateByStage[Number(stage)] * 100)}% pass rate)`}
+                </span>
+              </div>
+            ))}
+        </div>
+      )}
 
       <button className="button button-primary" onClick={() => void handleSync()} disabled={syncing}>
         {syncing ? 'Syncing…' : 'Sync YouTube channel'}

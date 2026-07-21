@@ -1,10 +1,13 @@
 import type {
   CourseDetail,
   CourseSummary,
+  DueReview,
+  FamilyLinkStatus,
   LessonDetail,
   PracticeAnswerReveal,
   PracticeSession,
   PracticeSubmitResult,
+  ReviewAnalytics,
   SyncResult,
   UnassignedVideoPage,
   UserStats,
@@ -46,6 +49,10 @@ export async function getProgress(): Promise<{ completedLessonIds: string[] }> {
   return getJson('/api/progress', { headers: await authHeaders() })
 }
 
+export async function getDueReviews(): Promise<{ reviews: DueReview[] }> {
+  return getJson('/api/reviews/due', { headers: await authHeaders() })
+}
+
 export async function setLessonComplete(lessonId: string, completed: boolean): Promise<void> {
   await getJson(`/api/progress/${lessonId}`, {
     method: 'PUT',
@@ -65,6 +72,11 @@ export async function triggerYoutubeSync(): Promise<SyncResult> {
     headers: await authHeaders(),
   })
   return data.result
+}
+
+export async function getReviewAnalytics(): Promise<ReviewAnalytics> {
+  const data = await getJson<{ analytics: ReviewAnalytics }>('/api/admin/review-analytics', { headers: await authHeaders() })
+  return data.analytics
 }
 
 export async function listUnassignedVideos(options: { limit?: number; cursor?: string } = {}): Promise<UnassignedVideoPage> {
@@ -103,7 +115,9 @@ export async function assignVideoToExistingLesson(
 }
 
 export async function getPracticeSession(lessonId: string): Promise<PracticeSession | null> {
-  const res = await fetch(`/api/lessons/${lessonId}/practice`)
+  // Sent whenever available (not required — the route works anonymously too)
+  // so a signed-in learner can get an interleaved review question.
+  const res = await fetch(`/api/lessons/${lessonId}/practice`, { headers: await authHeaders() })
   if (res.status === 404) return null
   if (!res.ok) throw new Error(`Request to /api/lessons/${lessonId}/practice failed with ${res.status}`)
   const data = (await res.json()) as { practice: PracticeSession }
@@ -112,13 +126,16 @@ export async function getPracticeSession(lessonId: string): Promise<PracticeSess
 
 export async function getQuestionAnswer(lessonId: string, questionId: string): Promise<PracticeAnswerReveal> {
   const data = await getJson<{ answer: PracticeAnswerReveal }>(
-    `/api/lessons/${lessonId}/practice/questions/${questionId}/answer`,
+    `/api/lessons/${lessonId}/practice/questions/${encodeURIComponent(questionId)}/answer`,
     { headers: await authHeaders() },
   )
   return data.answer
 }
 
-export async function submitPractice(lessonId: string, answers: number[]): Promise<PracticeSubmitResult> {
+export async function submitPractice(
+  lessonId: string,
+  answers: { questionId: string; answerIndex: number }[],
+): Promise<PracticeSubmitResult> {
   return getJson(`/api/lessons/${lessonId}/practice/submit`, {
     method: 'POST',
     headers: { ...(await authHeaders()), 'Content-Type': 'application/json' },
@@ -136,6 +153,41 @@ export async function deleteAccount(): Promise<void> {
   if (!res.ok) {
     throw new Error(`Request to /api/account failed with ${res.status}`)
   }
+}
+
+async function postWithErrorMessage(url: string, opts: RequestInit = {}): Promise<Response> {
+  const res = await fetch(url, {
+    ...opts,
+    method: opts.method ?? 'POST',
+    headers: { ...(await authHeaders()), 'Content-Type': 'application/json', ...opts.headers },
+  })
+  if (!res.ok) {
+    const data = (await res.json().catch(() => null)) as { error?: string } | null
+    throw new Error(data?.error || `Request to ${url} failed with ${res.status}`)
+  }
+  return res
+}
+
+export async function getFamilyStatus(): Promise<FamilyLinkStatus | null> {
+  const data = await getJson<{ status: FamilyLinkStatus | null }>('/api/family/status', { headers: await authHeaders() })
+  return data.status
+}
+
+export async function createFamilyInvite(): Promise<{ linkId: string; expiresAt: string }> {
+  const res = await postWithErrorMessage('/api/family/invite')
+  return res.json()
+}
+
+export async function acceptFamilyInvite(linkId: string): Promise<void> {
+  await postWithErrorMessage(`/api/family/accept/${linkId}`)
+}
+
+export async function confirmFamilySafeWord(): Promise<void> {
+  await postWithErrorMessage('/api/family/confirm-safeword')
+}
+
+export async function unlinkFamily(): Promise<void> {
+  await postWithErrorMessage('/api/family/link', { method: 'DELETE' })
 }
 
 export async function sendInquiry(input: {

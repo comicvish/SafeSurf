@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { listCourseDetails } from '../lib/api'
+import { getDueReviews, listCourseDetails } from '../lib/api'
 import { useAuth } from '../lib/authContext'
 import { useProgress } from '../lib/progressContext'
 import { useStats } from '../lib/statsContext'
-import type { CourseDetail } from '../lib/types'
+import type { CourseDetail, DueReview } from '../lib/types'
 
 const PAGE_TITLE = 'My progress | VeraBlock'
 const DEFAULT_TITLE = 'VeraBlock | Learn to stay safe online'
@@ -16,6 +16,7 @@ export default function Dashboard() {
   const [courses, setCourses] = useState<CourseDetail[] | null>(null)
   const [coursesError, setCoursesError] = useState<string | null>(null)
   const [retryCount, setRetryCount] = useState(0)
+  const [dueReviews, setDueReviews] = useState<DueReview[]>([])
 
   useEffect(() => {
     document.title = PAGE_TITLE
@@ -41,6 +42,24 @@ export default function Dashboard() {
       active = false
     }
   }, [retryCount])
+
+  useEffect(() => {
+    if (!user) {
+      setDueReviews([])
+      return
+    }
+    let active = true
+    getDueReviews()
+      .then((data) => {
+        if (active) setDueReviews(data.reviews)
+      })
+      .catch(() => {
+        if (active) setDueReviews([])
+      })
+    return () => {
+      active = false
+    }
+  }, [user])
 
   const allSettled = courses !== null
   const totalLessons = (courses ?? []).reduce((sum, c) => sum + c.units.reduce((s, u) => s + u.lessons.length, 0), 0)
@@ -106,6 +125,23 @@ export default function Dashboard() {
 
       {!coursesError && courses !== null && courses.length > 0 && (
         <>
+          {dueReviews.length > 0 && (
+            <div className="dashboard-review-section" aria-label="Lessons due for review">
+              <h2>Due for review</h2>
+              {dueReviews.map((review) => (
+                <div className="practice-card" key={review.lessonId}>
+                  <div>
+                    <strong>{review.title}</strong>
+                    <p>{review.summary}</p>
+                  </div>
+                  <Link className="button button-primary" to={`/lessons/${review.lessonId}/practice`}>
+                    Review now
+                  </Link>
+                </div>
+              ))}
+            </div>
+          )}
+
           {nextLesson && (
             <div className="practice-card dashboard-continue-card">
               <div>

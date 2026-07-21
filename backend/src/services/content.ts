@@ -53,7 +53,7 @@ export async function assignVideoToExistingLesson(input: {
   lessonId: string
   videoId: string
   summary?: string
-}): Promise<{ video: { title: string; description: string }; summary: string }> {
+}): Promise<{ video: { title: string; description: string }; summary: string; keyRule?: string }> {
   const lessonRef = db.collection('lessons').doc(input.lessonId)
   const videoRef = db.collection('videos').doc(input.videoId)
 
@@ -69,10 +69,14 @@ export async function assignVideoToExistingLesson(input: {
     const summary = input.summary?.trim() || lessonData.summary
     tx.update(lessonRef, { videoId: input.videoId, summary })
     tx.update(videoRef, { status: 'assigned' })
-    return { video: videoData, summary }
+    return { video: videoData, summary, keyRule: lessonData.keyRule }
   })
 
-  return { video: { title: result.video.title, description: result.video.description }, summary: result.summary }
+  return {
+    video: { title: result.video.title, description: result.video.description },
+    summary: result.summary,
+    keyRule: result.keyRule,
+  }
 }
 
 // Lists courses with unit/lesson *counts* only — used by the public course
@@ -137,7 +141,7 @@ export async function listCourseDetails(): Promise<CourseDetail[]> {
     const list = lessonsByUnit.get(data.unitId) ?? []
     list.push({
       id: doc.id,
-      title: (data.videoId && titleByVideoId.get(data.videoId)) || data.title || '',
+      title: resolveLessonTitle(data.videoId, data.title, titleByVideoId),
       order: data.order,
       summary: data.summary,
       hasVideo: !!data.videoId,
@@ -158,6 +162,14 @@ export async function listCourseDetails(): Promise<CourseDetail[]> {
     const data = doc.data() as CourseDoc
     return { id: doc.id, title: data.title, description: data.description, units: unitsByCourse.get(doc.id) ?? [] }
   })
+}
+
+// Shared by listCourseDetails/getCourseDetail/getLessonSummaries — a
+// lesson's title mirrors its linked video's current title when one is
+// assigned (so a rename on YouTube shows up here too), falling back to the
+// lesson's own stored `title` while no video is assigned yet.
+function resolveLessonTitle(videoId: string | undefined, title: string | undefined, titleByVideoId: Map<string, string>): string {
+  return (videoId && titleByVideoId.get(videoId)) || title || ''
 }
 
 // Shared by listCourseDetails/getCourseDetail — resolves video titles for a
@@ -217,7 +229,7 @@ export async function getCourseDetail(courseId: string): Promise<CourseDetail | 
     const lessons = (lessonsByUnit.get(doc.id) ?? [])
       .map((lesson) => ({
         id: lesson.id,
-        title: (lesson.videoId && titleByVideoId.get(lesson.videoId)) || lesson.title || '',
+        title: resolveLessonTitle(lesson.videoId, lesson.title, titleByVideoId),
         order: lesson.order,
         summary: lesson.summary,
         hasVideo: !!lesson.videoId,
@@ -285,10 +297,39 @@ export async function getLessonDetail(lessonId: string): Promise<LessonDetail | 
     id: lessonId,
     title: video.title,
     summary: lesson.summary,
+    keyRule: lesson.keyRule,
     video: { youtubeVideoId: video.youtubeVideoId, title: video.title, description: video.description },
     unit: { id: lesson.unitId, title: unit.title },
     course: { id: unit.courseId, title: course.title },
     prevLessonId,
     nextLessonId,
   }
+}
+
+// Batched lookup of lesson id/title/summary/keyRule for an arbitrary set of
+// lesson IDs — used by the review endpoint (and the reminder email) to
+// describe due reviews without a per-lesson round trip.
+export async function getLessonSummaries(
+  lessonIds: string[],
+): Promise<{ id: string; title: string; summary: string; keyRule?: string }[]> {
+  const uniqueIds = [...new Set(lessonIds)]
+  if (uniqueIds.length === 0) return []
+
+  const lessonsSnaps = await Promise.all(
+    chunk(uniqueIds, FIRESTORE_IN_QUERY_LIMIT).map((batch) =>
+      db.collection('lessons').where(FieldPath.documentId(), 'in', batch).get(),
+    ),
+  )
+  const lessons = lessonsSnaps.flatMap((snap) => snap.docs.map((doc) => ({ id: doc.id, data: doc.data() as LessonDoc })))
+
+  const titleByVideoId = await getVideoTitles(
+    lessons.map(({ data }) => data.videoId).filter((videoId): videoId is string => !!videoId),
+  )
+
+  return lessons.map(({ id, data }) => ({
+    id,
+    title: resolveLessonTitle(data.videoId, data.title, titleByVideoId),
+    summary: data.summary,
+    keyRule: data.keyRule,
+  }))
 }

@@ -74,11 +74,12 @@ export default function Practice() {
   }
 
   const handleFinish = async (finalAnswers: number[]) => {
-    if (!lessonId) return
+    if (!lessonId || !session) return
     setSubmitting(true)
     setSubmitError(null)
     try {
-      const submitted = await submitPractice(lessonId, finalAnswers)
+      const payload = session.questions.map((q, index) => ({ questionId: q.id, answerIndex: finalAnswers[index] }))
+      const submitted = await submitPractice(lessonId, payload)
       setResult(submitted)
       await refreshStats()
     } catch {

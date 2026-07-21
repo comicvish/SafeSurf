@@ -25,6 +25,7 @@ export interface LessonDetail {
   id: string
   title: string
   summary: string
+  keyRule?: string
   video: { youtubeVideoId: string; title: string; description: string }
   unit: { id: string; title: string }
   course: { id: string; title: string }
@@ -44,6 +45,13 @@ export interface UnassignedVideo {
 export interface UnassignedVideoPage {
   videos: UnassignedVideo[]
   nextCursor: string | null
+}
+
+export interface DueReview {
+  lessonId: string
+  title: string
+  summary: string
+  nextDueAt: string
 }
 
 export interface SyncResult {
@@ -80,4 +88,18 @@ export interface PracticeSubmitResult {
   totalQuestions: number
   xpEarned: number
   stats: UserStats
+}
+
+export interface ReviewAnalytics {
+  totalReviewsCompleted: number
+  passRateByStage: Record<number, number>
+  stageDistribution: Record<number, number>
+}
+
+export interface FamilyLinkStatus {
+  linkId: string
+  status: 'pending' | 'active'
+  role: 'inviter' | 'accepter'
+  otherEmail: string | null
+  safeWordConfirmedAt: string | null
 }

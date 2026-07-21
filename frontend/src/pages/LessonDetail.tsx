@@ -96,6 +96,11 @@ export default function LessonDetail() {
       <h1>{lesson.title}</h1>
       <VideoEmbed youtubeVideoId={lesson.video.youtubeVideoId} title={lesson.video.title} />
       <p className="lesson-summary">{lesson.summary}</p>
+      {lesson.keyRule && (
+        <p className="lesson-key-rule">
+          <strong>Remember:</strong> {lesson.keyRule}
+        </p>
+      )}
 
       {user ? (
         <div className="lesson-progress">

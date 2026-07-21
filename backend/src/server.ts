@@ -8,9 +8,11 @@ import { lessonsRouter } from './routes/lessons.js'
 import { progressRouter } from './routes/progress.js'
 import { adminRouter } from './routes/admin.js'
 import { practiceRouter } from './routes/practice.js'
+import { reviewsRouter } from './routes/reviews.js'
 import { statsRouter } from './routes/stats.js'
 import { inquiriesRouter } from './routes/inquiries.js'
 import { accountRouter } from './routes/account.js'
+import { familyRouter } from './routes/family.js'
 import { listCourseDetails } from './services/content.js'
 import { asyncHandler } from './middleware/asyncHandler.js'
 
@@ -66,9 +68,11 @@ app.use('/api', lessonsRouter)
 app.use('/api', progressRouter)
 app.use('/api', adminRouter)
 app.use('/api', practiceRouter)
+app.use('/api', reviewsRouter)
 app.use('/api', statsRouter)
 app.use('/api', inquiriesRouter)
 app.use('/api', accountRouter)
+app.use('/api', familyRouter)
 
 app.use('/api', (_req, res) => {
   res.status(404).json({ error: 'Not found' })

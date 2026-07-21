@@ -12,6 +12,7 @@ import Login from './pages/Login'
 import Signup from './pages/Signup'
 import Dashboard from './pages/Dashboard'
 import MyAccount from './pages/MyAccount'
+import FamilyLinkAccept from './pages/FamilyLinkAccept'
 import ProtectedRoute from './components/ProtectedRoute'
 import AdminRoute from './components/AdminRoute'
 import Admin from './pages/Admin'
@@ -60,6 +61,7 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+          <Route path="/family-link/:linkId" element={<FamilyLinkAccept />} />
           <Route
             path="/admin"
             element={

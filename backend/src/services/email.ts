@@ -1,4 +1,5 @@
 import nodemailer, { type Transporter } from 'nodemailer'
+import type { DueReview } from '../types.js'
 
 const CONTACT_EMAIL = 'support@verablock.org'
 
@@ -39,5 +40,37 @@ export async function sendInquiryEmail(input: InquiryInput): Promise<void> {
     replyTo: input.email,
     subject: `Interested in the VeraBlock in-person course — ${input.name}`,
     text: lines.join('\n'),
+  })
+}
+
+export async function sendReviewReminderEmail(
+  to: string,
+  input: { dueLessons: DueReview[]; dashboardUrl: string; unsubscribeUrl: string },
+): Promise<void> {
+  const lessonLines = input.dueLessons.flatMap((lesson) => {
+    const lines = [`- ${lesson.title}`]
+    if (lesson.keyRule) lines.push(`  Remember: ${lesson.keyRule}`)
+    return lines
+  })
+
+  const plural = input.dueLessons.length === 1 ? 'lesson is' : 'lessons are'
+  const text = [
+    `You have ${input.dueLessons.length} ${plural} due for review on VeraBlock:`,
+    '',
+    ...lessonLines,
+    '',
+    `Review now: ${input.dashboardUrl}`,
+    '',
+    `Don't want these reminders? Unsubscribe: ${input.unsubscribeUrl}`,
+  ].join('\n')
+
+  await getTransporter().sendMail({
+    from: `VeraBlock <${process.env.GMAIL_USER}>`,
+    to,
+    subject:
+      input.dueLessons.length === 1
+        ? `A lesson is due for review: ${input.dueLessons[0].title}`
+        : `${input.dueLessons.length} lessons are due for review`,
+    text,
   })
 }
